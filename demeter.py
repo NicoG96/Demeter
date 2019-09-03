@@ -1,7 +1,10 @@
 from github import Github
 import env
 
-user = Github(env.ACCESS_TOKEN)
+git = Github(env.ACCESS_TOKEN)
+user = git.get_user()
+repo = git.get_repo(env.REPO)
 
-for repo in user.get_user().get_repos():
-    print(repo.name)
+open_issues = repo.get_issues(state='open')
+for issue in open_issues:
+    print(issue)
