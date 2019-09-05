@@ -12,6 +12,16 @@ def get_pulls_test():
     assert True
 
 
+def sort_pulls():
+    demeter.sort_pulls()
+    assert True
+
+
+def get_merge_commits_tests():
+    demeter.get_merge_commits()
+    assert True
+
+
 def build_release_branch_test():
     demeter.build_release_branch()
     assert True
