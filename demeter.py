@@ -55,7 +55,7 @@ def get_pulls(tickets):
         match = False
 
         for pr in all_pulls:
-            if re.search("^#?\s?" + str(ticket) + ".*", pr.title):
+            if re.search("^#?\s?" + str(ticket) + "\D.*", pr.title):
                 match = True
                 connected_pulls.append(pr)
                 break
