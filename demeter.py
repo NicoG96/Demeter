@@ -16,22 +16,33 @@ def demeter_cli():
     print(colored('============================================', 'cyan'))
 
     tickets = get_tickets()
-    pulls = get_pulls(tickets)
+
+    if len(tickets) is not 0:
+        pulls = get_pulls(tickets)
+    else:
+        logging.error('No tickets were entered! Exiting ...')
+        exit(1)
 
     # build_release_branch()
 
 
 def get_tickets():
+    print("Enter tickets one-by-one to queue for release, then type 'end' to conclude queuing:\t")
     tickets = []
-    done = False
+    i = 1
 
-    ticket_number = input("Enter a ticket to queue for release, type 'end' to conclude queuing:\t")
+    while True:
+        ticket_number = input(str(i) + '.) ')
+        i += 1
 
-    # while not done:
-    #     if user_input() == 'end':
-    #         done = True
-    #     else:
-    #         tickets.append(user_input())
+        if ticket_number == 'end':
+            break
+        else:
+            try:
+                tickets.append(int(ticket_number))
+            except ValueError:
+                logging.error('Invalid entry!\n')
+
     return tickets
 
 
@@ -44,13 +55,13 @@ def get_pulls(tickets):
         match = False
 
         for pr in all_pulls:
-            if re.search("^#?\s?" + ticket + ".*", pr.title):
+            if re.search("^#?\s?" + str(ticket) + ".*", pr.title):
                 match = True
                 connected_pulls.append(pr)
                 break
 
         if match is False:
-            logging.error('Did not find any connected PR to ticket #' + ticket)
+            logging.error('Did not find any connected PR to ticket #' + str(ticket))
             logging.warning('Did the PR include the ticket # in the title?')
 
     return connected_pulls
