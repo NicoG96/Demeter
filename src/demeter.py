@@ -2,7 +2,7 @@ from termcolor import colored
 from pyfiglet import Figlet
 from github import Github
 import logging
-from src import env
+import env
 import re
 
 git = Github(env.GITHUB_TOKEN)
