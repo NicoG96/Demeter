@@ -1,13 +1,15 @@
 from termcolor import colored
+from datetime import datetime
 from pyfiglet import Figlet
 from github import Github
 import logging
 import env
 import re
 
+fig = Figlet(font='slant')
 git = Github(env.GITHUB_TOKEN)
 repo = git.get_repo(env.GITHUB_REPO)
-fig = Figlet(font='slant')
+logging.getLogger().setLevel(logging.INFO)
 
 
 def demeter_cli():
@@ -25,9 +27,9 @@ def demeter_cli():
         exit(1)
 
     if len(pull_requests) is not 0:
-        sort_pulls(pull_requests)
+        pull_requests = sort_pulls(pull_requests)
     else:
-        logging.error('Couldn\'t retrieve associated pull requests. Exiting...')
+        logging.error('Couldn\'t retrieve any associated pull requests. Exiting...')
         exit(1)
 
     commits = get_merge_commits(pull_requests)
@@ -71,14 +73,14 @@ def get_pulls(tickets):
                 break
 
         if match is False:
-            logging.error('Did not find any connected PR to ticket #' + str(ticket)
+            logging.error('Did not find a connected PR for ticket #' + str(ticket)
                           + '.\nDid the PR include the ticket # in the title?')
 
     return connected_pulls
 
 
 def sort_pulls(pull_requests):
-    return pull_requests
+    return sorted(pull_requests, key=lambda x: x.merged_at, reverse=False)
 
 
 def get_merge_commits(pull_requests):
