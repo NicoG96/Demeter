@@ -39,11 +39,22 @@ def demeter_cli():
             else:
                 logging.info('Exiting...')
                 exit(1)
+        else:
+            pull_requests = sort_pulls(pull_requests)
     else:
         logging.error('Couldn\'t retrieve any associated pull requests. Exiting...')
         exit(1)
 
-    commits = get_merge_commits(pull_requests)
+    print(colored('The following PRs will be cherry-picked into the next release:', 'yellow'))
+    for pr in pull_requests:
+        print(pr.title)
+    print(colored('Looks good? [y/n]', 'yellow'))
+
+    if input() == 'n':
+        logging.info('Exiting...')
+        exit(1)
+    else:
+        commits = get_merge_commits(pull_requests)
 
     if len(pull_requests) == len(commits):
         build_release_branch()
@@ -103,7 +114,12 @@ def sort_pulls(pull_requests):
 
 
 def get_merge_commits(pull_requests):
+    logging.info('Fetching merge hashes...')
     commits = []
+
+    for pr in pull_requests:
+        commits.append(pr.merge_commit_sha)
+
     return commits
 
 
