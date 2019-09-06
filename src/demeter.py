@@ -1,8 +1,8 @@
 from termcolor import colored
-from datetime import datetime
 from pyfiglet import Figlet
 from github import Github
 import logging
+import github
 import env
 import re
 
@@ -19,6 +19,7 @@ def demeter_cli():
 
     pull_requests = None
     connect_errors = None
+    commits = None
     tickets = get_tickets()
 
     if len(tickets) is not 0:
@@ -48,7 +49,7 @@ def demeter_cli():
     print(colored('The following PRs will be cherry-picked into the next release:', 'yellow'))
     for pr in pull_requests:
         print(pr.title)
-    print(colored('Looks good? [y/n]', 'yellow'))
+    print(colored('Look good? [y/n]', 'yellow'))
 
     if input() == 'n':
         logging.info('Exiting...')
@@ -56,8 +57,10 @@ def demeter_cli():
     else:
         commits = get_merge_commits(pull_requests)
 
-    if len(pull_requests) == len(commits):
+    if len(commits) == len(pull_requests):
         build_release_branch()
+
+    cherrypick(commits)
 
 
 def get_tickets():
@@ -124,6 +127,42 @@ def get_merge_commits(pull_requests):
 
 
 def build_release_branch():
+    prev_release_sha = get_prev_release_sha()
+
+    print(colored('Now please type the version number of this release:\t', 'yellow'))
+    curr_release_version = input()
+
+    logging.info('Building the new release branch...')
+
+    try:
+        repo.create_git_ref(ref = 'refs/heads/releases/v' + curr_release_version, sha = prev_release_sha)
+        logging.info('Successfully created new release branch!')
+    except github.GithubException:
+        logging.error('Couldn\'t create release branch! Exiting...')
+        exit(1)
+
+
+def get_prev_release_sha():
+    print(colored('Please type the last release version (e.g. 1.45.0):\t', 'yellow'))
+    prev_release_sha = None
+    done = False
+
+    while not done:
+        prev_release_version = input()
+        try:
+            prev_release_sha = repo.get_branch(branch="releases/v" + prev_release_version).commit.sha
+            logging.info('Previous release branch successfully indexed!')
+            done = True
+
+        except github.GithubException:
+            logging.error('Branch not found. Try again?')
+
+    return prev_release_sha
+
+
+def cherrypick(commits):
+    logging.info('Cherry-picking ' + str(len(commits)) + ' commits...')
+
     return True
 
 
