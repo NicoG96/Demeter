@@ -17,9 +17,10 @@ def demeter_cli():
     print(colored(fig.renderText('Demeter'), 'cyan'), end = '')
     print(colored('============================================', 'cyan'))
 
-    pull_requests = None
     connect_errors = None
+    pull_requests = None
     commits = None
+
     tickets = get_tickets()
 
     if len(tickets) is not 0:
@@ -48,19 +49,16 @@ def demeter_cli():
 
     print(colored('The following PRs will be cherry-picked into the next release:', 'yellow'))
     for pr in pull_requests:
-        print(pr.title)
+        print(pr.title + ' - ' + pr.merged_at)
     print(colored('Look good? [y/n]', 'yellow'))
 
     if input() == 'n':
         logging.info('Exiting...')
         exit(1)
     else:
-        commits = get_merge_commits(pull_requests)
-
-    if len(commits) == len(pull_requests):
         build_release_branch()
 
-    cherrypick(commits)
+    cherrypick(pull_requests)
 
 
 def get_tickets():
@@ -79,7 +77,6 @@ def get_tickets():
                 tickets.append(int(ticket_number))
             except ValueError:
                 logging.error('Invalid entry!\n')
-
     return tickets
 
 
@@ -116,16 +113,6 @@ def sort_pulls(pull_requests):
     return sorted(pull_requests, key=lambda x: x.merged_at, reverse=False)
 
 
-def get_merge_commits(pull_requests):
-    logging.info('Fetching merge hashes...')
-    commits = []
-
-    for pr in pull_requests:
-        commits.append(pr.merge_commit_sha)
-
-    return commits
-
-
 def build_release_branch():
     prev_release_sha = get_prev_release_sha()
 
@@ -160,8 +147,8 @@ def get_prev_release_sha():
     return prev_release_sha
 
 
-def cherrypick(commits):
-    logging.info('Cherry-picking ' + str(len(commits)) + ' commits...')
+def cherrypick(pull_requests):
+    logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commits...')
 
     return True
 
