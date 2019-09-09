@@ -35,7 +35,7 @@ def demeter_cli():
                           ('s' if connect_errors > 1 else '') +
                           '. Would you still like to continue with deployment? [y/n]', 'yellow'))
 
-            if input() == 'y':
+            if input().lower() == 'y':
                 pull_requests = sort_pulls(pull_requests)
             else:
                 logging.info('Exiting...')
@@ -51,7 +51,7 @@ def demeter_cli():
         print(pr.title + ' - ' + str(pr.merged_at))
     print(colored('Look good? [y/n]', 'yellow'))
 
-    if input() == 'n':
+    if input().lower() == 'n':
         logging.info('Exiting...')
         exit(1)
     else:
