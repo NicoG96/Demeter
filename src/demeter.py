@@ -19,7 +19,6 @@ def demeter_cli():
 
     connect_errors = None
     pull_requests = None
-    commits = None
 
     tickets = get_tickets()
 
@@ -49,7 +48,7 @@ def demeter_cli():
 
     print(colored('The following PRs will be cherry-picked into the next release:', 'yellow'))
     for pr in pull_requests:
-        print(pr.title + ' - ' + pr.merged_at)
+        print(pr.title + ' - ' + str(pr.merged_at))
     print(colored('Look good? [y/n]', 'yellow'))
 
     if input() == 'n':
@@ -94,14 +93,13 @@ def get_pulls(tickets):
             if re.search("^.*" + str(ticket) + "\D.*$", pr.title):
                 match = True
                 connected_pulls.append(pr)
-                break
 
         if match is False:
             errors += 1
             logging.error('Did not find a connected PR for ticket #' + str(ticket)
                           + '.\nDid the PR include the ticket # in the title?')
 
-    logging.info('Connected ' + str(len(tickets) - errors) + ' issue' +
+    logging.info('Connected ' + str(len(tickets) - errors) + '/' + str(len(tickets)) + ' issue' +
                  ('s' if len(tickets)-errors > 1 else '') +
                  ' to ' + str(len(connected_pulls)) +
                  ' pull request' + ('s' if len(connected_pulls) > 1 else ''))
@@ -115,9 +113,18 @@ def sort_pulls(pull_requests):
 
 def build_release_branch():
     prev_release_sha = get_prev_release_sha()
+    done = False
 
     print(colored('Now please type the version number of this release:\t', 'yellow'))
-    curr_release_version = input()
+    curr_release_version = None
+
+    while not done:
+        curr_release_version = input()
+
+        if re.match("^\d+[.]\d+[.]\d+$", str(curr_release_version)):
+            break
+        else:
+            logging.error("Incorrect semantic versioning syntax. Try again?")
 
     logging.info('Building the new release branch...')
 
