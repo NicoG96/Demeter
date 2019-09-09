@@ -55,7 +55,22 @@ def demeter_cli():
         logging.info('Exiting...')
         exit(1)
     else:
-        build_release_branch()
+        prev_release_sha = get_prev_release_sha()
+
+        curr_release_version = None
+        done = False
+
+        print(colored('Now please type the version number of this release:\t', 'yellow'))
+
+        while not done:
+            curr_release_version = input()
+
+            if re.match("^\d+[.]\d+[.]\d+$", str(curr_release_version)):
+                break
+            else:
+                logging.error("Incorrect semantic versioning syntax. Try again?")
+
+        build_release_branch(prev_release_sha, curr_release_version)
 
     cherrypick(pull_requests)
 
@@ -111,21 +126,7 @@ def sort_pulls(pull_requests):
     return sorted(pull_requests, key=lambda x: x.merged_at, reverse=False)
 
 
-def build_release_branch():
-    prev_release_sha = get_prev_release_sha()
-    done = False
-
-    print(colored('Now please type the version number of this release:\t', 'yellow'))
-    curr_release_version = None
-
-    while not done:
-        curr_release_version = input()
-
-        if re.match("^\d+[.]\d+[.]\d+$", str(curr_release_version)):
-            break
-        else:
-            logging.error("Incorrect semantic versioning syntax. Try again?")
-
+def build_release_branch(prev_release_sha, curr_release_version):
     logging.info('Building the new release branch...')
 
     try:
