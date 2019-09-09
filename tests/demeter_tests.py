@@ -1,30 +1,54 @@
+from github import Github
 from src import demeter
 import unittest
+import env
 
 
-def get_tickets_test():
-    demeter.get_tickets()
-    assert True
+class DemeterTests(unittest.TestCase):
+    git = Github(env.GITHUB_TOKEN)
+    repo = git.get_repo(env.GITHUB_REPO)
 
+    def test_get_pulls(self):
+        connected_pulls = []
 
-def get_pulls_test():
-    demeter.get_pulls()
-    assert True
+        tickets = [
+            1049,
+            1262,
+            1050,
+            1296,
+            1302,
+            1288,
+            1263
+        ]
 
+        for ticket in tickets:
+            connected_pulls.append(self.repo.get_pull(ticket))
 
-def sort_pulls():
-    demeter.sort_pulls()
-    assert True
+        self.assertEqual(connected_pulls, demeter.get_pulls(tickets))
 
+    def test_sort_pulls(self):
+        ordered_pulls = []
 
-def get_merge_commits_tests():
-    demeter.get_merge_commits()
-    assert True
+        tickets_ordered = [
+            1262,
+            1265,
+            1266,
+            1263,
+            1272
+        ]
 
+        tickets_unordered = [
+            1272,
+            1265,
+            1262,
+            1266,
+            1263
+        ]
 
-def build_release_branch_test():
-    demeter.build_release_branch()
-    assert True
+        for ticket in tickets_ordered:
+            ordered_pulls.append(self.repo.get_pull(ticket))
+
+        self.assertEqual(ordered_pulls, demeter.sort_pulls(tickets_unordered))
 
 
 if __name__ == '__main__':
