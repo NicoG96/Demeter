@@ -47,8 +47,10 @@ def demeter_cli():
         exit(1)
 
     print(colored('The following PRs will be cherry-picked into the next release:', 'yellow'))
+    print(colored('==============================================================================================================', 'yellow'))
     for pr in pull_requests:
         print(pr.title + ' - ' + str(pr.merged_at))
+    print(colored('==============================================================================================================', 'yellow'))
     print(colored('Look good? [y/n]', 'yellow'))
 
     if input().lower() == 'n':
@@ -76,7 +78,7 @@ def demeter_cli():
 
 
 def get_tickets():
-    print("Enter tickets one-by-one to queue for release.\nType 'end' to conclude queuing:\t")
+    print("Enter tickets one-by-one to queue for release.\nType 'done' to conclude queuing:\t")
     tickets = []
     i = 1
 
@@ -84,11 +86,16 @@ def get_tickets():
         ticket_number = input(str(i) + '.) ')
         i += 1
 
-        if ticket_number == 'end':
+        if ticket_number == 'done':
             break
         else:
             try:
-                tickets.append(int(ticket_number))
+                parsed_ticket_num = int(ticket_number)
+
+                if parsed_ticket_num not in tickets:
+                    tickets.append(parsed_ticket_num)
+                else:
+                    logging.warning('You\'ve already entered this ticket!')
             except ValueError:
                 logging.error('Invalid entry!\n')
     return tickets
@@ -117,7 +124,7 @@ def get_pulls(tickets):
     logging.info('Connected ' + str(len(tickets) - errors) + '/' + str(len(tickets)) + ' issue' +
                  ('s' if len(tickets)-errors > 1 else '') +
                  ' to ' + str(len(connected_pulls)) +
-                 ' pull request' + ('s' if len(connected_pulls) > 1 else ''))
+                 ' pull request' + ('s' if len(connected_pulls) > 1 or len(connected_pulls) == 0 else ''))
 
     return connected_pulls, errors
 
