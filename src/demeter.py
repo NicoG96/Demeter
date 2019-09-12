@@ -1,14 +1,17 @@
 from termcolor import colored
 from pyfiglet import Figlet
+from git import Repo, Git
 from github import Github
 import logging
 import github
 import env
 import re
 
+git = Git(env.REPO_PATH)
 fig = Figlet(font='slant')
-git = Github(env.GITHUB_TOKEN)
-repo = git.get_repo(env.GITHUB_REPO)
+repo = Repo(env.REPO_PATH)
+g = Github(env.GITHUB_TOKEN)
+r = g.get_repo(env.GITHUB_REPO)
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -58,7 +61,6 @@ def demeter_cli():
         exit(1)
     else:
         prev_release_sha = get_prev_release_sha()
-
         curr_release_version = None
         done = False
 
@@ -73,8 +75,7 @@ def demeter_cli():
                 logging.error("Incorrect semantic versioning syntax. Try again?")
 
         build_release_branch(prev_release_sha, curr_release_version)
-
-    cherrypick(pull_requests)
+        cherrypick(pull_requests, curr_release_version)
 
 
 def get_tickets():
@@ -104,7 +105,7 @@ def get_tickets():
 def get_pulls(tickets):
     logging.info('Connecting ' + str(len(tickets)) + ' issue' +
                  ('s' if len(tickets) > 1 else '') + ' to relevant pull requests...')
-    all_pulls = repo.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
+    all_pulls = r.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
     connected_pulls = []
     errors = 0
 
@@ -137,7 +138,7 @@ def build_release_branch(prev_release_sha, curr_release_version):
     logging.info('Building the new release branch...')
 
     try:
-        repo.create_git_ref(ref = 'refs/heads/releases/v' + curr_release_version, sha = prev_release_sha)
+        r.create_git_ref(ref = 'refs/heads/releases/v' + curr_release_version, sha = prev_release_sha)
         logging.info('Successfully created new release branch!')
     except github.GithubException:
         logging.error('Couldn\'t create release branch! Exiting...')
@@ -152,7 +153,7 @@ def get_prev_release_sha():
     while not done:
         prev_release_version = input()
         try:
-            prev_release_sha = repo.get_branch(branch="releases/v" + prev_release_version).commit.sha
+            prev_release_sha = r.get_branch(branch="releases/v" + prev_release_version).commit.sha
             logging.info('Previous release branch successfully indexed!')
             done = True
 
@@ -162,8 +163,23 @@ def get_prev_release_sha():
     return prev_release_sha
 
 
-def cherrypick(pull_requests):
-    logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commits...')
+def cherrypick(pull_requests, curr_release_version):
+    logging.info('Fetching repo updates...')
+    repo.git.fetch()
+    repo.git.pull()
+
+    logging.info("Checking out branch: releases/v" + str(curr_release_version) + '...')
+    repo.git.checkout("releases/v" + str(curr_release_version))
+
+    logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commit' +
+                 's' if len(pull_requests) > 1 else '' + '...')
+    for pr in pull_requests:
+        repo.git.cherry_pick('-m', '1', pr.merge_commit_sha)
+
+    logging.info('Pushing changes to origin...')
+    repo.git.push('origin', 'releases/v' + str(curr_release_version))
+
+    logging.info('Success! Exiting...')
 
     return True
 
