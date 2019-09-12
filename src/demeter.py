@@ -61,21 +61,12 @@ def demeter_cli():
         exit(1)
     else:
         prev_release_sha = get_prev_release_sha()
-        curr_release_version = None
-        done = False
 
-        print(colored('Now please type the version number of this release:\t', 'yellow'))
+        print(colored('Now please type the name of this release:\t', 'yellow'))
+        release_name = input()
 
-        while not done:
-            curr_release_version = input()
-
-            if re.match("^\d+[.]\d+[.]\d+$", str(curr_release_version)):
-                break
-            else:
-                logging.error("Incorrect semantic versioning syntax. Try again?")
-
-        build_release_branch(prev_release_sha, curr_release_version)
-        cherrypick(pull_requests, curr_release_version)
+        build_release_branch(prev_release_sha, release_name)
+        cherrypick(pull_requests, release_name)
 
 
 def get_tickets():
@@ -134,11 +125,11 @@ def sort_pulls(pull_requests):
     return sorted(pull_requests, key=lambda x: x.merged_at, reverse=False)
 
 
-def build_release_branch(prev_release_sha, curr_release_version):
+def build_release_branch(prev_release_sha, release_name):
     logging.info('Building the new release branch...')
 
     try:
-        r.create_git_ref(ref = 'refs/heads/releases/v' + curr_release_version, sha = prev_release_sha)
+        r.create_git_ref(ref = 'refs/heads/' + str(release_name), sha = prev_release_sha)
         logging.info('Successfully created new release branch!')
     except github.GithubException:
         logging.error('Couldn\'t create release branch! Exiting...')
@@ -146,14 +137,14 @@ def build_release_branch(prev_release_sha, curr_release_version):
 
 
 def get_prev_release_sha():
-    print(colored('Please type the last release version (e.g. 1.45.0):\t', 'yellow'))
+    print(colored('Please type the branch name to base this release off of:\t', 'yellow'))
     prev_release_sha = None
     done = False
 
     while not done:
-        prev_release_version = input()
+        prev_release_name = input()
         try:
-            prev_release_sha = r.get_branch(branch="releases/v" + prev_release_version).commit.sha
+            prev_release_sha = r.get_branch(branch=str(prev_release_name)).commit.sha
             logging.info('Previous release branch successfully indexed!')
             done = True
 
@@ -163,21 +154,22 @@ def get_prev_release_sha():
     return prev_release_sha
 
 
-def cherrypick(pull_requests, curr_release_version):
+def cherrypick(pull_requests, release_name):
     logging.info('Fetching repo updates...')
     repo.git.fetch()
     repo.git.pull()
 
-    logging.info("Checking out branch: releases/v" + str(curr_release_version) + '...')
-    repo.git.checkout("releases/v" + str(curr_release_version))
+    logging.info("Checking out branch: " + str(release_name) + '...')
+    repo.git.checkout(str(release_name))
 
     logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commit' +
-                 's' if len(pull_requests) > 1 else '' + '...')
+                 ('s' if len(pull_requests) > 1 else '') + '...')
+
     for pr in pull_requests:
         repo.git.cherry_pick('-m', '1', pr.merge_commit_sha)
 
     logging.info('Pushing changes to origin...')
-    repo.git.push('origin', 'releases/v' + str(curr_release_version))
+    repo.git.push('origin', str(release_name))
 
     logging.info('Success! Exiting...')
 
