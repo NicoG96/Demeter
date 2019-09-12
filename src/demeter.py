@@ -52,7 +52,7 @@ def demeter_cli():
     print(colored('The following PRs will be cherry-picked into the next release:', 'yellow'))
     print(colored('==============================================================================================================', 'yellow'))
     for pr in pull_requests:
-        print(pr.title + ' - ' + str(pr.merged_at))
+        print(str(pr.merged_at) + ' - ' + pr.title)
     print(colored('==============================================================================================================', 'yellow'))
     print(colored('Look good? [y/n]', 'yellow'))
 
