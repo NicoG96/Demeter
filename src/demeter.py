@@ -4,14 +4,14 @@ from git import Repo, Git
 from github import Github
 import logging
 import github
-import env
+import config
 import re
 
-git = Git(env.REPO_PATH)
+git = Git(config.REPO_PATH)
 fig = Figlet(font='slant')
-repo = Repo(env.REPO_PATH)
-g = Github(env.GITHUB_TOKEN)
-r = g.get_repo(env.GITHUB_REPO)
+repo = Repo(config.REPO_PATH)
+g = Github(config.GITHUB_TOKEN)
+r = g.get_repo(config.GITHUB_REPO)
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -50,10 +50,12 @@ def demeter_cli():
         exit(1)
 
     print(colored('The following PRs will be cherry-picked into the next release:', 'yellow'))
-    print(colored('==============================================================================================================', 'yellow'))
+    print(colored('===================================================================================================='
+                  '==========', 'yellow'))
     for pr in pull_requests:
         print(str(pr.merged_at) + ' - ' + pr.title)
-    print(colored('==============================================================================================================', 'yellow'))
+    print(colored('===================================================================================================='
+                  '==========', 'yellow'))
     print(colored('Look good? [y/n]', 'yellow'))
 
     if input().lower() == 'n':
