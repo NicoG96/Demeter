@@ -27,7 +27,14 @@ Demeter helps developers cherry-pick certain pull requests from issue tickets th
 <!-- INSTALLATION -->
 ## Installation
 
-Install the application by running setup.exe. You must then specify the location of the repository directory on your local machine in addition to your GitHub access token.  Both these variables will be stored in the application's config file.
+1.) Download the latest version of Demeter from the Releases tab
+
+2.) Unzip the archive
+
+3.) In a terminal, navigate to the unzipped directory and type:
+`python3 setup.py install`
+
+4.) Once installed, then navigate to the /demeter/ folder and type: `python3 demeter.py`!
 
 
 <!-- USAGE EXAMPLES -->
