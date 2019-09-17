@@ -2,16 +2,12 @@ from termcolor import colored
 from pyfiglet import Figlet
 from git import Repo, Git
 from github import Github
+import os.path
 import logging
 import github
-import config
 import re
 
-git = Git(config.REPO_PATH)
 fig = Figlet(font='slant')
-repo = Repo(config.REPO_PATH)
-g = Github(config.GITHUB_TOKEN)
-r = g.get_repo(config.GITHUB_REPO)
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -179,4 +175,25 @@ def cherrypick(pull_requests, release_name):
 
 
 if __name__ == "__main__":
+    if not os.path.isfile("../config.py"):
+        config = open("../config.py", "w")
+        print(colored("Please enter your personal GitHub access token:\t", "yellow"))
+        GITHUB_TOKEN = input()
+        print(colored("Please enter the repository as it appears on Github(e.g. {User}/{Repository}:\t", "yellow"))
+        GITHUB_REPO = input()
+        print(colored("Please enter the directory path of the project on your machine {e.g. C:\{User}\Documents\{Repo}:"
+                      "\t", "yellow"))
+        REPO_PATH = input()
+
+        config.write('GITHUB_TOKEN = "' + GITHUB_TOKEN + '"\n')
+        config.write('GITHUB_REPO = "' + GITHUB_REPO + '"\n')
+        config.write('REPO_PATH = r"' + REPO_PATH + '"\n')
+        config.close()
+
+    import config
+    git = Git(config.REPO_PATH)
+    repo = Repo(config.REPO_PATH)
+    g = Github(config.GITHUB_TOKEN)
+    r = g.get_repo(config.GITHUB_REPO)
+
     demeter_cli()
