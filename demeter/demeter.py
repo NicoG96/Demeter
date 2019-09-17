@@ -2,6 +2,7 @@ from termcolor import colored
 from pyfiglet import Figlet
 from git import Repo, Git
 from github import Github
+import configparser
 import os.path
 import logging
 import github
@@ -175,8 +176,9 @@ def cherrypick(pull_requests, release_name):
 
 
 if __name__ == "__main__":
-    if not os.path.isfile("../config.py"):
-        config = open("../config.py", "w")
+    config = configparser.ConfigParser()
+
+    if not os.path.isfile("config.ini"):
         print(colored("Please enter your personal GitHub access token:\t", "yellow"))
         GITHUB_TOKEN = input()
         print(colored("Please enter the repository as it appears on Github(e.g. {User}/{Repository}:\t", "yellow"))
@@ -185,15 +187,19 @@ if __name__ == "__main__":
                       "\t", "yellow"))
         REPO_PATH = input()
 
-        config.write('GITHUB_TOKEN = "' + GITHUB_TOKEN + '"\n')
-        config.write('GITHUB_REPO = "' + GITHUB_REPO + '"\n')
-        config.write('REPO_PATH = r"' + REPO_PATH + '"\n')
-        config.close()
+        config['CREDENTIALS'] = {
+            'GITHUB_TOKEN': GITHUB_TOKEN,
+            'GITHUB_REPO': GITHUB_REPO,
+            'REPO_PATH': REPO_PATH
+        }
 
-    import config
-    git = Git(config.REPO_PATH)
-    repo = Repo(config.REPO_PATH)
-    g = Github(config.GITHUB_TOKEN)
-    r = g.get_repo(config.GITHUB_REPO)
+        with open('config.ini', 'w') as settings:
+            config.write(settings)
+
+    config.read('config.ini')
+    git = Git(config.get('CREDENTIALS', 'repo_path'))
+    repo = Repo(config.get('CREDENTIALS', 'repo_path'))
+    g = Github(config.get('CREDENTIALS', 'github_token'))
+    r = g.get_repo(config.get('CREDENTIALS', 'github_repo'))
 
     demeter_cli()
