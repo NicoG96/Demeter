@@ -180,17 +180,17 @@ if __name__ == "__main__":
 
     if not os.path.isfile("../config.ini"):
         print(colored("Please enter your BitBucket email login:\t", "yellow"))
-        bb_email = input()
+        BB_EMAIL = input()
         print(colored("Please enter your BitBucket password:\t", "yellow"))
-        bb_password = input()
+        BB_PASSWORD = input()
         print(colored("Please enter the directory path of the project on your machine {e.g. C:\{User}\Documents\{Repo}:"
                       "\t", "yellow"))
         REPO_PATH = input()
 
         config['BITBUCKET CREDENTIALS'] = {
-            'bb_email': bb_email,
-            'bb_password': bb_password,
-            'repo_path': REPO_PATH
+            'BB_EMAIL': BB_EMAIL,
+            'BB_PASSWORD': BB_PASSWORD,
+            'REPO_PATH': REPO_PATH
         }
 
         with open('../config.ini', 'w') as settings:
@@ -198,6 +198,6 @@ if __name__ == "__main__":
 
     config.read('../config.ini')
 
-    client = Client(config.get('BITBUCKET CREDENTIALS', 'bb_email'), config.get('BITBUCKET CREDENTIALS', 'bb_password'))
-    git = Git(config.get('BITBUCKET CREDENTIALS', 'repo_path'))
-    repo = Repo(config.get('BITBUCKET CREDENTIALS', 'repo_path'))
+    client = Client(config.get('BITBUCKET CREDENTIALS', 'BB_EMAIL'), config.get('BITBUCKET CREDENTIALS', 'BB_PASSWORD'))
+    git = Git(config.get('BITBUCKET CREDENTIALS', 'REPO_PATH'))
+    repo = Repo(config.get('BITBUCKET CREDENTIALS', 'REPO_PATH'))
