@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="Demeter",
-    version="1.0.0",
+    version="2.0.0",
     author="Nico Gonzalez",
     author_email="NicoG96@gmail.com",
     packages=["demeter"],
@@ -15,6 +15,6 @@ setup(
         "pyfiglet",
         "GitPython",
         "pygithub",
+        "bitbucket-python"
     ],
-    entry_points={"console_scripts": ["demeter=demeter:demeter_cli"]}
 )
