@@ -187,7 +187,7 @@ if __name__ == "__main__":
                       "\t", "yellow"))
         REPO_PATH = input()
 
-        config['CREDENTIALS'] = {
+        config['GITHUB CREDENTIALS'] = {
             'GITHUB_TOKEN': GITHUB_TOKEN,
             'GITHUB_REPO': GITHUB_REPO,
             'REPO_PATH': REPO_PATH
@@ -197,9 +197,9 @@ if __name__ == "__main__":
             config.write(settings)
 
     config.read('config.ini')
-    git = Git(config.get('CREDENTIALS', 'repo_path'))
-    repo = Repo(config.get('CREDENTIALS', 'repo_path'))
-    g = Github(config.get('CREDENTIALS', 'github_token'))
-    r = g.get_repo(config.get('CREDENTIALS', 'github_repo'))
+    git = Git(config.get('GITHUB CREDENTIALS', 'REPO_PATH'))
+    repo = Repo(config.get('GITHUB CREDENTIALS', 'REPO_PATH'))
+    g = Github(config.get('GITHUB CREDENTIALS', 'GITHUB_TOKEN'))
+    r = g.get_repo(config.get('GITHUB CREDENTIALS', 'GITHUB_REPO'))
 
     demeter_cli()
