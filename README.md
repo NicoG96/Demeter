@@ -3,7 +3,7 @@
   <h1 align="center">Demeter</h1>
 
   <p align="center">
-    🍒 Automate the cherry-picking stuff with Python! 🍒
+    🍒 Automate the cherry-picking stuff with Python 🍒
   </p>
 
 <!-- TABLE OF CONTENTS -->
@@ -11,6 +11,7 @@
 
 * [About the Project](#about-the-project)
 * [Installation](#installation)
+* [Requirements](#requirements)
 * [Usage](#usage)
 * [Contributing](#contributing)
 * [License](#license)
@@ -34,7 +35,15 @@ Demeter helps developers cherry-pick certain pull requests from issue tickets th
 3.) In a terminal, navigate to the unzipped directory and type:
 `python3 setup.py install`
 
-4.) Once installed, then navigate to the /demeter/ folder and type: `python3 demeter.py`!
+4.) Once installed, simply run the command: `python3 demeter/demeter.py`
+
+
+
+<!-- REQUIREMENTS -->
+## Requirements
+1. Python 3.7.2+
+2. GitHub access token
+3. Structured pull request system that includes ticket number in title
 
 
 <!-- USAGE EXAMPLES -->
