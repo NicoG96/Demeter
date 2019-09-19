@@ -180,16 +180,19 @@ if __name__ == "__main__":
 
     if not os.path.isfile("config.ini"):
         print(colored("Please enter your personal GitHub access token:\t", "yellow"))
-        GITHUB_TOKEN = input()
+        GH_TOKEN = input()
         print(colored("Please enter the repository as it appears on Github(e.g. {User}/{Repository}:\t", "yellow"))
-        GITHUB_REPO = input()
+        GH_REPO = input()
         print(colored("Please enter the directory path of the project on your machine {e.g. C:\{User}\Documents\{Repo}:"
                       "\t", "yellow"))
         REPO_PATH = input()
 
         config['GITHUB CREDENTIALS'] = {
-            'GITHUB_TOKEN': GITHUB_TOKEN,
-            'GITHUB_REPO': GITHUB_REPO,
+            'GH_TOKEN': GH_TOKEN,
+            'GH_REPO': GH_REPO,
+        }
+
+        config['LOCAL REPOSITORY'] = {
             'REPO_PATH': REPO_PATH
         }
 
@@ -197,8 +200,8 @@ if __name__ == "__main__":
             config.write(settings)
 
     config.read('config.ini')
-    git = Git(config.get('GITHUB CREDENTIALS', 'REPO_PATH'))
-    repo = Repo(config.get('GITHUB CREDENTIALS', 'REPO_PATH'))
+    git = Git(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
+    repo = Repo(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
     g = Github(config.get('GITHUB CREDENTIALS', 'GITHUB_TOKEN'))
     r = g.get_repo(config.get('GITHUB CREDENTIALS', 'GITHUB_REPO'))
 
