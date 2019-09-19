@@ -1,8 +1,9 @@
-from bitbucket.client import Client
+from bitbucket.bitbucket import Bitbucket
 from termcolor import colored
 from pyfiglet import Figlet
 from git import Repo, Git
 import configparser
+import requests
 import os.path
 import logging
 import github
@@ -20,12 +21,12 @@ def demeter_cli():
     connect_errors = None
     pull_requests = None
 
-    tickets = get_tickets()
+    issues = get_issues()
 
-    if len(tickets) is not 0:
-        pull_requests, connect_errors = get_pulls(tickets)
+    if len(issues) is not 0:
+        pull_requests, connect_errors = get_pulls(issues)
     else:
-        logging.error('No tickets were entered! Exiting...')
+        logging.error('No issues were entered! Exiting...')
         exit(1)
 
     if len(pull_requests) is not 0:
@@ -68,52 +69,58 @@ def demeter_cli():
         cherrypick(pull_requests, release_name)
 
 
-def get_tickets():
-    print("Enter tickets one-by-one to queue for release.\nType 'done' to conclude queuing:\t")
-    tickets = []
+def get_issues():
+    print("Enter issue IDs one-by-one to queue for release.\nType 'done' to conclude queuing:\t")
+    issues = []
     i = 1
 
     while True:
-        ticket_number = input(str(i) + '.) ')
+        issue_number = input(str(i) + '.) ')
         i += 1
 
-        if ticket_number == 'done':
+        if issue_number == 'done':
             break
         else:
             try:
-                parsed_ticket_num = int(ticket_number)
+                parsed_ticket_num = int(issue_number)
 
-                if parsed_ticket_num not in tickets:
-                    tickets.append(parsed_ticket_num)
+                if parsed_ticket_num not in issues:
+                    issues.append(parsed_ticket_num)
                 else:
                     logging.warning('You\'ve already entered this ticket!')
             except ValueError:
                 logging.error('Invalid entry!\n')
-    return tickets
+    return issues
 
 
-def get_pulls(tickets):
-    logging.info('Connecting ' + str(len(tickets)) + ' issue' +
-                 ('s' if len(tickets) > 1 else '') + ' to relevant pull requests...')
-    # all_pulls = r.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
+def get_pulls(issues):
+    logging.info('Connecting ' + str(len(issues)) + ' issue' +
+                 ('s' if len(issues) > 1 else '') + ' to relevant pull requests...')
+
+    url = 'https://api.bitbucket.org/2.0/repositories/testing21774/demtest/pullrequests'
+    params = {'state': 'MERGED'}
+
+    response = (requests.get(url=url, params=params)).json()
+    all_pulls = response.get('values')
+
     connected_pulls = []
     errors = 0
 
-    for ticket in tickets:
+    for issue in issues:
         match = False
 
-        # for pr in all_pulls:
-        #     if re.search("^.*" + str(ticket) + "\D.*$", pr.title):
-        #         match = True
-        #         connected_pulls.append(pr)
+        for pr in all_pulls:
+            if re.search("^.*" + str(issue) + "\D.*$", pr['title']):
+                match = True
+                connected_pulls.append(pr)
 
         if match is False:
             errors += 1
-            logging.error('Did not find a connected PR for ticket #' + str(ticket)
+            logging.error('Did not find a connected PR for ticket #' + str(issue)
                           + '.\nDid the PR include the ticket # in the title?')
 
-    logging.info('Connected ' + str(len(tickets) - errors) + '/' + str(len(tickets)) + ' issue' +
-                 ('s' if len(tickets)-errors > 1 else '') +
+    logging.info('Connected ' + str(len(issues) - errors) + '/' + str(len(issues)) + ' issue' +
+                 ('s' if len(issues)-errors > 1 else '') +
                  ' to ' + str(len(connected_pulls)) +
                  ' pull request' + ('s' if len(connected_pulls) > 1 or len(connected_pulls) == 0 else ''))
 
@@ -179,17 +186,22 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
 
     if not os.path.isfile("../config.ini"):
-        print(colored("Please enter your BitBucket email login:\t", "yellow"))
-        BB_EMAIL = input()
+        print(colored("Please enter your BitBucket username:\t", "yellow"))
+        BB_USER = input()
         print(colored("Please enter your BitBucket password:\t", "yellow"))
         BB_PASSWORD = input()
+        print(colored("Please enter the name of the BitBucket repo:\t", "yellow"))
+        BB_REPO = input()
         print(colored("Please enter the directory path of the project on your machine {e.g. C:\{User}\Documents\{Repo}:"
                       "\t", "yellow"))
         REPO_PATH = input()
 
         config['BITBUCKET CREDENTIALS'] = {
-            'BB_EMAIL': BB_EMAIL,
+            'BB_USER': BB_USER,
             'BB_PASSWORD': BB_PASSWORD,
+            'BB_REPO': BB_REPO
+        }
+        config['LOCAL REPOSITORY'] = {
             'REPO_PATH': REPO_PATH
         }
 
@@ -198,6 +210,11 @@ if __name__ == "__main__":
 
     config.read('../config.ini')
 
-    client = Client(config.get('BITBUCKET CREDENTIALS', 'BB_EMAIL'), config.get('BITBUCKET CREDENTIALS', 'BB_PASSWORD'))
-    git = Git(config.get('BITBUCKET CREDENTIALS', 'REPO_PATH'))
-    repo = Repo(config.get('BITBUCKET CREDENTIALS', 'REPO_PATH'))
+    git = Git(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
+    repo = Repo(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
+
+    bb = Bitbucket(username=config.get('BITBUCKET CREDENTIALS', 'BB_USER'),
+                   password=config.get('BITBUCKET CREDENTIALS', 'BB_PASSWORD'),
+                   repo_name_or_slug=config.get('BITBUCKET CREDENTIALS', 'BB_REPO'))
+
+    demeter_cli()
