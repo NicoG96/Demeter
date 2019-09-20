@@ -1,12 +1,11 @@
-from bitbucket.bitbucket import Bitbucket
 from termcolor import colored
 from pyfiglet import Figlet
-from git import Repo, Git
+from git import Repo
 import configparser
 import requests
 import os.path
 import logging
-import github
+import json
 import re
 
 fig = Figlet(font='slant')
@@ -32,8 +31,7 @@ def demeter_cli():
     if len(pull_requests) is not 0:
         if connect_errors:
             print(colored('There was an error connecting ' + str(connect_errors) +
-                          ' ticket' +
-                          ('s' if connect_errors > 1 else '') +
+                          ' ticket' + ('s' if connect_errors > 1 else '') +
                           '. Would you still like to continue with deployment? [y/n]', 'yellow'))
 
             if input().lower() == 'y':
@@ -51,7 +49,9 @@ def demeter_cli():
     print(colored('===================================================================================================='
                   '==========', 'yellow'))
     for pr in pull_requests:
-        print(str(pr.merged_at) + ' - ' + pr.title)
+        print(str(pr['updated_on']) + ' - ' +
+              str(pr['merge_commit']['hash']) + ' - ' +
+              str(pr['title']))
     print(colored('===================================================================================================='
                   '==========', 'yellow'))
     print(colored('Look good? [y/n]', 'yellow'))
@@ -94,14 +94,23 @@ def get_issues():
 
 
 def get_pulls(issues):
-    logging.info('Connecting ' + str(len(issues)) + ' issue' +
-                 ('s' if len(issues) > 1 else '') + ' to relevant pull requests...')
+    all_pulls = []
+    logging.info('Connecting ' + str(len(issues)) +
+                 ' issue' + ('s' if len(issues) > 1 else '') +
+                 ' to relevant pull requests...')
 
-    url = 'https://api.bitbucket.org/2.0/repositories/testing21774/demtest/pullrequests'
-    params = {'state': 'MERGED'}
+    url = 'https://api.bitbucket.org/2.0/repositories/{}/{}/pullrequests?state=MERGED'\
+        .format(
+            config.get("BITBUCKET CREDENTIALS", "BB_USER"),
+            config.get("BITBUCKET CREDENTIALS", "BB_REPO"))
 
-    response = (requests.get(url=url, params=params)).json()
-    all_pulls = response.get('values')
+    try:
+        response = (requests.get(url=url)).json()
+        all_pulls = response.get('values')
+
+    except json.decoder.JSONDecodeError:
+        logging.error("Couldn't access BitBucket API - credentials error")
+        exit(1)
 
     connected_pulls = []
     errors = 0
@@ -119,8 +128,9 @@ def get_pulls(issues):
             logging.error('Did not find a connected PR for ticket #' + str(issue)
                           + '.\nDid the PR include the ticket # in the title?')
 
-    logging.info('Connected ' + str(len(issues) - errors) + '/' + str(len(issues)) + ' issue' +
-                 ('s' if len(issues)-errors > 1 else '') +
+    logging.info('Connected ' + str(len(issues) - errors) +
+                 '/' + str(len(issues)) +
+                 ' issue' + ('s' if len(issues)-errors > 1 else '') +
                  ' to ' + str(len(connected_pulls)) +
                  ' pull request' + ('s' if len(connected_pulls) > 1 or len(connected_pulls) == 0 else ''))
 
@@ -128,18 +138,14 @@ def get_pulls(issues):
 
 
 def sort_pulls(pull_requests):
-    return sorted(pull_requests, key=lambda x: x.merged_at, reverse=False)
+    return sorted(pull_requests, key=lambda x: x['updated_on'], reverse=False)
 
 
 def build_release_branch(prev_release_sha, release_name):
     logging.info('Building the new release branch...')
 
-    try:
-        # r.create_git_ref(ref = 'refs/heads/' + str(release_name), sha = prev_release_sha)
-        logging.info('Successfully created new release branch!')
-    except github.GithubException:
-        logging.error('Couldn\'t create release branch! Exiting...')
-        exit(1)
+    # r.create_git_ref(ref = 'refs/heads/' + str(release_name), sha = prev_release_sha)
+    logging.info('Successfully created new release branch!')
 
 
 def get_prev_release_sha():
@@ -148,14 +154,16 @@ def get_prev_release_sha():
     done = False
 
     while not done:
-        prev_release_name = input()
-        try:
-            # prev_release_sha = r.get_branch(branch=str(prev_release_name)).commit.sha
-            logging.info('Previous release branch successfully indexed!')
-            done = True
+        url = 'https://api.bitbucket.org/2.0/repositories/testing21774/demtest/refs/branches/{}'.format(input())
 
-        except github.GithubException:
+        response = (requests.get(url = url)).json()
+
+        if 'error' in response:
             logging.error('Branch not found. Try again?')
+        else:
+            logging.info('Previous release branch successfully indexed!')
+            prev_release_sha = response['target']['hash']
+            done = True
 
     return prev_release_sha
 
@@ -210,11 +218,6 @@ if __name__ == "__main__":
 
     config.read('../config.ini')
 
-    git = Git(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
     repo = Repo(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
-
-    bb = Bitbucket(username=config.get('BITBUCKET CREDENTIALS', 'BB_USER'),
-                   password=config.get('BITBUCKET CREDENTIALS', 'BB_PASSWORD'),
-                   repo_name_or_slug=config.get('BITBUCKET CREDENTIALS', 'BB_REPO'))
 
     demeter_cli()
