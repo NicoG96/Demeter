@@ -1,7 +1,7 @@
 from termcolor import colored
 from pyfiglet import Figlet
-from git import Repo, Git
 from github import Github
+from git import Repo
 import configparser
 import os.path
 import logging
@@ -93,8 +93,9 @@ def get_tickets():
 
 
 def get_pulls(tickets):
-    logging.info('Connecting ' + str(len(tickets)) + ' issue' +
-                 ('s' if len(tickets) > 1 else '') + ' to relevant pull requests...')
+    logging.info('Connecting ' + str(len(tickets)) +
+                 ' issue' + ('s' if len(tickets) > 1 else '') +
+                 ' to relevant pull requests...')
     all_pulls = r.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
     connected_pulls = []
     errors = 0
@@ -112,8 +113,9 @@ def get_pulls(tickets):
             logging.error('Did not find a connected PR for ticket #' + str(ticket)
                           + '.\nDid the PR include the ticket # in the title?')
 
-    logging.info('Connected ' + str(len(tickets) - errors) + '/' + str(len(tickets)) + ' issue' +
-                 ('s' if len(tickets)-errors > 1 else '') +
+    logging.info('Connected ' + str(len(tickets) - errors) +
+                 '/' + str(len(tickets)) +
+                 ' issue' + ('s' if len(tickets)-errors > 1 else '') +
                  ' to ' + str(len(connected_pulls)) +
                  ' pull request' + ('s' if len(connected_pulls) > 1 or len(connected_pulls) == 0 else ''))
 
@@ -200,7 +202,6 @@ if __name__ == "__main__":
             config.write(settings)
 
     config.read('config.ini')
-    git = Git(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
     repo = Repo(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
     g = Github(config.get('GITHUB CREDENTIALS', 'GITHUB_TOKEN'))
     r = g.get_repo(config.get('GITHUB CREDENTIALS', 'GITHUB_REPO'))
