@@ -32,15 +32,12 @@ def demeter_cli():
         if connect_errors:
             print(colored('There was an error connecting ' + str(connect_errors) +
                           ' ticket' + ('s' if connect_errors > 1 else '') +
-                          '. Would you still like to continue with deployment? [y/n]', 'yellow'))
+                          '. Would you still like to continue? [y/n]', 'yellow'))
 
-            if input().lower() == 'y':
-                pull_requests = sort_pulls(pull_requests)
-            else:
+            if input().lower() == 'n':
                 logging.info('Exiting...')
                 exit(1)
-        else:
-            pull_requests = sort_pulls(pull_requests)
+        pull_requests = sort_pulls(pull_requests)
     else:
         logging.error('Couldn\'t retrieve any associated pull requests. Exiting...')
         exit(1)
@@ -59,17 +56,17 @@ def demeter_cli():
     if input().lower() == 'n':
         logging.info('Exiting...')
         exit(1)
-    else:
-        prev_branch = get_remote_branch()
 
-        if prev_branch is None:
-            logging.error("Couldn't fetch the specified branch!")
-            exit(1)
-        else:
-            print(colored('Now please type the name of the new branch:\t', 'yellow'))
-            new_branch = input()
-            build_release_branch(prev_branch, new_branch)
-            cherrypick(pull_requests, new_branch)
+    prev_branch = get_remote_branch()
+
+    if prev_branch is None:
+        logging.error("Couldn't fetch the specified branch!")
+        exit(1)
+
+    print(colored('Now please type the name of the new branch:\t', 'yellow'))
+    new_branch = input()
+    build_new_branch(prev_branch, new_branch)
+    cherrypick(pull_requests, new_branch)
     logging.info('Process completed successfully! Exiting Demeter...')
 
 
@@ -145,15 +142,15 @@ def sort_pulls(pull_requests):
     return sorted(pull_requests, key=lambda x: x['updated_on'], reverse=False)
 
 
-def build_release_branch(prev_branch, new_branch):
-    logging.info('Fetching repo updates...')
+def build_new_branch(prev_branch, new_branch):
+    logging.info('Fetching any repo updates...')
     repo.git.checkout(prev_branch)
     repo.git.pull()
 
     logging.info('Building the new branch...')
     repo.git.checkout('-b', new_branch)
 
-    logging.info('Successfully created new release branch!')
+    logging.info('Successfully created new branch!')
 
 
 def get_remote_branch():
@@ -190,32 +187,26 @@ def cherrypick(pull_requests, new_branch):
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
+    config.read('../config.ini')
 
-    if not os.path.isfile("../config.ini"):
-        print(colored("Please enter your BitBucket username:\t", "yellow"))
+    if not os.path.isfile("../config.ini") or 'BITBUCKET CREDENTIALS' not in config.sections():
+        print(colored("Please enter the name of the user/organization of the BitBucket repo:\t", "yellow"))
         BB_USER = input()
-        print(colored("Please enter your BitBucket password:\t", "yellow"))
-        BB_PASSWORD = input()
         print(colored("Please enter the name of the BitBucket repo:\t", "yellow"))
         BB_REPO = input()
         print(colored("Please enter the directory path of the project on your machine {e.g. C:\{User}\Documents\{Repo}:"
                       "\t", "yellow"))
-        REPO_PATH = input()
+        LOCAL_REPO = input()
 
         config['BITBUCKET CREDENTIALS'] = {
             'BB_USER': BB_USER,
-            'BB_PASSWORD': BB_PASSWORD,
-            'BB_REPO': BB_REPO
-        }
-        config['LOCAL REPOSITORY'] = {
-            'REPO_PATH': REPO_PATH
+            'BB_REPO': BB_REPO,
+            'LOCAL_REPO': LOCAL_REPO
         }
 
         with open('../config.ini', 'w') as settings:
             config.write(settings)
 
-    config.read('../config.ini')
-
-    repo = Repo(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
+    repo = Repo(config.get('BITBUCKET CREDENTIALS', 'LOCAL_REPO'))
 
     demeter_cli()
