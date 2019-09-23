@@ -60,13 +60,17 @@ def demeter_cli():
         logging.info('Exiting...')
         exit(1)
     else:
-        prev_release_sha = get_prev_release_sha()
+        prev_branch = get_remote_branch()
 
-        print(colored('Now please type the name of this release:\t', 'yellow'))
-        release_name = input()
-
-        build_release_branch(prev_release_sha, release_name)
-        cherrypick(pull_requests, release_name)
+        if prev_branch is None:
+            logging.error("Couldn't fetch the specified branch!")
+            exit(1)
+        else:
+            print(colored('Now please type the name of the new branch:\t', 'yellow'))
+            new_branch = input()
+            build_release_branch(prev_branch, new_branch)
+            cherrypick(pull_requests, new_branch)
+    logging.info('Process completed successfully! Exiting Demeter...')
 
 
 def get_issues():
@@ -141,20 +145,24 @@ def sort_pulls(pull_requests):
     return sorted(pull_requests, key=lambda x: x['updated_on'], reverse=False)
 
 
-def build_release_branch(prev_release_sha, release_name):
-    logging.info('Building the new release branch...')
+def build_release_branch(prev_branch, new_branch):
+    logging.info('Fetching repo updates...')
+    repo.git.checkout(prev_branch)
+    repo.git.pull()
 
-    # r.create_git_ref(ref = 'refs/heads/' + str(release_name), sha = prev_release_sha)
+    logging.info('Building the new branch...')
+    repo.git.checkout('-b', new_branch)
+
     logging.info('Successfully created new release branch!')
 
 
-def get_prev_release_sha():
+def get_remote_branch():
     print(colored('Please type the branch name to base this release off of:\t', 'yellow'))
-    prev_release_sha = None
     done = False
 
     while not done:
-        url = 'https://api.bitbucket.org/2.0/repositories/testing21774/demtest/refs/branches/{}'.format(input())
+        branch_name = input()
+        url = 'https://api.bitbucket.org/2.0/repositories/testing21774/demtest/refs/branches/{}'.format(branch_name)
 
         response = (requests.get(url = url)).json()
 
@@ -162,32 +170,22 @@ def get_prev_release_sha():
             logging.error('Branch not found. Try again?')
         else:
             logging.info('Previous release branch successfully indexed!')
-            prev_release_sha = response['target']['hash']
-            done = True
+            return branch_name
 
-    return prev_release_sha
+    return None
 
 
-def cherrypick(pull_requests, release_name):
-    # logging.info('Fetching repo updates...')
-    # repo.git.fetch()
-    # repo.git.pull()
-    #
-    # logging.info("Checking out branch: " + str(release_name) + '...')
-    # repo.git.checkout(str(release_name))
-    #
-    # logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commit' +
-    #              ('s' if len(pull_requests) > 1 else '') + '...')
-    #
-    # for pr in pull_requests:
-    #     repo.git.cherry_pick('-m', '1', pr.merge_commit_sha)
-    #
-    # logging.info('Pushing changes to origin...')
-    # repo.git.push('origin', str(release_name))
-    #
-    # logging.info('Success! Exiting...')
+def cherrypick(pull_requests, new_branch):
+    logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commit' +
+                 ('s' if len(pull_requests) > 1 else '') + '...')
 
-    return True
+    for pr in pull_requests:
+        repo.git.cherry_pick('-m', '1', pr['merge_commit']['hash'])
+
+    logging.info('Pushing changes to origin...')
+    repo.git.push('--set-upstream', 'origin', str(new_branch))
+
+    return
 
 
 if __name__ == "__main__":
