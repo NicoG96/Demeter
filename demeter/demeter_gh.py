@@ -35,13 +35,10 @@ def demeter_cli():
                           ('s' if connect_errors > 1 else '') +
                           '. Would you still like to continue with deployment? [y/n]', 'yellow'))
 
-            if input().lower() == 'y':
-                pull_requests = sort_pulls(pull_requests)
-            else:
+            if input().lower() == 'n':
                 logging.info('Exiting...')
                 exit(1)
-        else:
-            pull_requests = sort_pulls(pull_requests)
+        pull_requests = sort_pulls(pull_requests)
     else:
         logging.error('Couldn\'t retrieve any associated pull requests. Exiting...')
         exit(1)
@@ -58,14 +55,16 @@ def demeter_cli():
     if input().lower() == 'n':
         logging.info('Exiting...')
         exit(1)
-    else:
-        prev_release_sha = get_prev_release_sha()
 
-        print(colored('Now please type the name of this release:\t', 'yellow'))
-        release_name = input()
+    prev_release_sha = get_prev_release_sha()
 
-        build_release_branch(prev_release_sha, release_name)
-        cherrypick(pull_requests, release_name)
+    print(colored('Now please type the name of this release:\t', 'yellow'))
+    release_name = input()
+
+    build_release_branch(prev_release_sha, release_name)
+    cherrypick(pull_requests, release_name)
+
+    logging.info('Process completed successfully! Exiting Demeter...')
 
 
 def get_tickets():
@@ -172,9 +171,7 @@ def cherrypick(pull_requests, release_name):
     logging.info('Pushing changes to origin...')
     repo.git.push('origin', str(release_name))
 
-    logging.info('Success! Exiting...')
-
-    return True
+    return
 
 
 if __name__ == "__main__":
