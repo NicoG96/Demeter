@@ -100,7 +100,8 @@ def get_pulls(issues):
                  ' issue' + ('s' if len(issues) > 1 else '') +
                  ' to relevant pull requests...')
 
-    url = 'https://api.bitbucket.org/2.0/repositories/{}/{}/pullrequests?fields=values.title&state=MERGED'\
+    url = 'https://api.bitbucket.org/2.0/repositories/{}/{}/pullrequests?fields=values.title,values.updated_on,' \
+          'values.merge_commit.hash&state=MERGED'\
         .format(
             config.get("BITBUCKET CREDENTIALS", "BB_USER"),
             config.get("BITBUCKET CREDENTIALS", "BB_REPO"))
