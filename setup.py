@@ -15,6 +15,6 @@ setup(
         "pyfiglet",
         "GitPython",
         "pygithub",
-        "bitbucket-python"
+        'requests'
     ],
 )
