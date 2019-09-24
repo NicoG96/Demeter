@@ -1,14 +1,16 @@
+from datetime import datetime, timedelta
 from termcolor import colored
 from pyfiglet import Figlet
 from git import Repo
 import configparser
+import webbrowser
 import requests
 import os.path
 import logging
 import json
 import re
 
-fig = Figlet(font='slant')
+fig = Figlet(font = 'slant')
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -100,14 +102,13 @@ def get_pulls(issues):
                  ' issue' + ('s' if len(issues) > 1 else '') +
                  ' to relevant pull requests...')
 
-    url = 'https://api.bitbucket.org/2.0/repositories/{}/{}/pullrequests?fields=values.title,values.updated_on,' \
-          'values.merge_commit.hash&state=MERGED'\
-        .format(
-            config.get("BITBUCKET CREDENTIALS", "BB_USER"),
-            config.get("BITBUCKET CREDENTIALS", "BB_REPO"))
+    url = 'https://api.bitbucket.org/2.0/repositories/{}/pullrequests?fields=values.title,values.updated_on,' \
+          'values.merge_commit.hash&state=MERGED'.format(config.get("BITBUCKET CREDENTIALS", "BB_REPO"))
+
+    header = {'Authorization': 'Bearer {}'.format(config.get("BITBUCKET CREDENTIALS", "BB_ACCESS_TOKEN"))}
 
     try:
-        response = (requests.get(url=url)).json()
+        response = (requests.get(url = url, headers = header)).json()
         all_pulls = response.get('values')
 
     except json.decoder.JSONDecodeError:
@@ -132,7 +133,7 @@ def get_pulls(issues):
 
     logging.info('Connected ' + str(len(issues) - errors) +
                  '/' + str(len(issues)) +
-                 ' issue' + ('s' if len(issues)-errors > 1 else '') +
+                 ' issue' + ('s' if len(issues) - errors > 1 else '') +
                  ' to ' + str(len(connected_pulls)) +
                  ' pull request' + ('s' if len(connected_pulls) > 1 or len(connected_pulls) == 0 else ''))
 
@@ -140,7 +141,7 @@ def get_pulls(issues):
 
 
 def sort_pulls(pull_requests):
-    return sorted(pull_requests, key=lambda x: x['updated_on'], reverse=False)
+    return sorted(pull_requests, key = lambda x: x['updated_on'], reverse = False)
 
 
 def build_new_branch(prev_branch, new_branch):
@@ -160,7 +161,8 @@ def get_remote_branch():
 
     while not done:
         branch_name = input()
-        url = 'https://api.bitbucket.org/2.0/repositories/testing21774/demtest/refs/branches/{}'.format(branch_name)
+        url = 'https://api.bitbucket.org/2.0/repositories/{}/refs/branches/{}' \
+            .format(config.get('BITBUCKET CREDENTIALS', 'BB_REPO'), branch_name)
 
         response = (requests.get(url = url)).json()
 
@@ -191,21 +193,80 @@ if __name__ == "__main__":
     config.read('../config.ini')
 
     if not os.path.isfile("../config.ini") or 'BITBUCKET CREDENTIALS' not in config.sections():
-        print(colored("Please enter the name of the user/organization of the BitBucket repo:\t", "yellow"))
-        BB_USER = input()
-        print(colored("Please enter the name of the BitBucket repo:\t", "yellow"))
+        # get user credentials
+        print(colored("Please enter your OAuth2 consumer key:\t", "yellow"), end = '')
+        BB_KEY = input()
+
+        print(colored("Please enter your OAuth2 consumer secret:\t", "yellow"), end = '')
+        BB_SECRET = input()
+
+        print(colored("Please enter the name of the repo as it appears in the BitBucket URL (e.g. {user}/{repo}):\t",
+                      "yellow"), end = '')
         BB_REPO = input()
-        print(colored("Please enter the directory path of the project on your machine {e.g. C:\{User}\Documents\{Repo}:"
-                      "\t", "yellow"))
+
+        print(colored("Please enter the directory path of the project on your machine (e.g. /Users/{User}/Documents"
+                      "/{Repo}):\t", "yellow"), end = '')
         LOCAL_REPO = input()
 
+        # fetch authentication code
+        print(colored("Opening web browser... please copy the code from the URL and paste it here:\t", "yellow"),
+              end = '')
+
+        webbrowser.open("https://bitbucket.org/site/oauth2/authorize?client_id=" + BB_KEY + "&response_type=code")
+        BB_AUTH_CODE = input()
+
+        # fetch access and refresh tokens
+        data = {
+            'grant_type': 'authorization_code',
+            'code': BB_AUTH_CODE
+        }
+
+        API_keys = requests.post('https://bitbucket.org/site/oauth2/access_token',
+                                 data = data,
+                                 auth = (BB_KEY, BB_SECRET)).json()
+
+        BB_ACCESS_TOKEN = API_keys['access_token']
+        BB_REFRESH_TOKEN = API_keys['refresh_token']
+
+        # write all data to config file
         config['BITBUCKET CREDENTIALS'] = {
-            'BB_USER': BB_USER,
+            'BB_KEY': BB_KEY,
+            'BB_SECRET': BB_SECRET,
+            'BB_ACCESS_TOKEN': BB_ACCESS_TOKEN,
+            'BB_REFRESH_TOKEN': BB_REFRESH_TOKEN,
             'BB_REPO': BB_REPO,
             'LOCAL_REPO': LOCAL_REPO
         }
 
-        with open('../config.ini', 'w') as settings:
+        config['METADATA'] = {
+            'Last Updated': str(datetime.now())
+        }
+
+        with open('../config.ini', 'w+') as settings:
+            config.write(settings)
+
+    # check if the access token has expired
+    if datetime.now() - datetime.strptime(config.get('METADATA', 'Last_Updated'), '%Y-%m-%d %H:%M:%S.%f') >= timedelta(hours=2):
+        logging.info('Access token has expired. Updating now...')
+
+        data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': config.get('BITBUCKET CREDENTIALS', 'BB_REFRESH_TOKEN')
+        }
+
+        updated_keys = requests.post('https://bitbucket.org/site/oauth2/access_token',
+                                     data = data,
+                                     auth = (config.get('BITBUCKET CREDENTIALS', 'BB_KEY'),
+                                             config.get('BITBUCKET CREDENTIALS', 'BB_SECRET'))).json()
+        BB_ACCESS_TOKEN = updated_keys['access_token']
+        BB_REFRESH_TOKEN = updated_keys['refresh_token']
+
+        # update the keys in the config file
+        config.set('BITBUCKET CREDENTIALS', 'BB_ACCESS_TOKEN', BB_ACCESS_TOKEN)
+        config.set('BITBUCKET CREDENTIALS', 'BB_REFRESH_TOKEN', BB_REFRESH_TOKEN)
+        config.set('METADATA', 'Last Updated', str(datetime.now()))
+
+        with open('../config.ini', 'w+') as settings:
             config.write(settings)
 
     repo = Repo(config.get('BITBUCKET CREDENTIALS', 'LOCAL_REPO'))
