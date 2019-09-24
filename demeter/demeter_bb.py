@@ -239,7 +239,7 @@ if __name__ == "__main__":
         }
 
         config['METADATA'] = {
-            'Last Updated': str(datetime.now())
+            'Last_Updated': str(datetime.now())
         }
 
         with open('../config.ini', 'w+') as settings:
@@ -264,7 +264,7 @@ if __name__ == "__main__":
         # update the keys in the config file
         config.set('BITBUCKET CREDENTIALS', 'BB_ACCESS_TOKEN', BB_ACCESS_TOKEN)
         config.set('BITBUCKET CREDENTIALS', 'BB_REFRESH_TOKEN', BB_REFRESH_TOKEN)
-        config.set('METADATA', 'Last Updated', str(datetime.now()))
+        config.set('METADATA', 'Last_Updated', str(datetime.now()))
 
         with open('../config.ini', 'w+') as settings:
             config.write(settings)
