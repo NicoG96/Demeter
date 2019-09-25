@@ -197,9 +197,9 @@ def cherrypick(pull_requests, new_branch):
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
-    config.read('../config.ini')
+    config.read('config.ini')
 
-    if not os.path.isfile("../config.ini") or 'BITBUCKET CREDENTIALS' not in config.sections():
+    if not os.path.isfile("config.ini") or 'BITBUCKET CREDENTIALS' not in config.sections():
         # get user credentials
         print(colored("Please enter your OAuth2 consumer key:\t", "yellow"), end = '')
         BB_KEY = input()
@@ -252,7 +252,7 @@ if __name__ == "__main__":
             'Last_Updated': str(datetime.now())
         }
 
-        with open('../config.ini', 'w+') as settings:
+        with open('config.ini', 'w+') as settings:
             config.write(settings)
 
     # check if the access token has expired
@@ -274,7 +274,7 @@ if __name__ == "__main__":
         config.set('BITBUCKET CREDENTIALS', 'BB_REFRESH_TOKEN', BB_REFRESH_TOKEN)
         config.set('METADATA', 'Last_Updated', str(datetime.now()))
 
-        with open('../config.ini', 'w+') as settings:
+        with open('config.ini', 'w+') as settings:
             config.write(settings)
 
     repo = Repo(config.get('LOCAL REPO', 'LOCAL_REPO'))

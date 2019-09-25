@@ -179,9 +179,9 @@ def cherrypick(pull_requests, release_name):
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
-    config.read('../config.ini')
+    config.read('config.ini')
 
-    if not os.path.isfile("../config.ini") or 'GITHUB CREDENTIALS' not in config.sections():
+    if not os.path.isfile("config.ini") or 'GITHUB CREDENTIALS' not in config.sections():
         print(colored("Please enter your personal GitHub access token:\t", "yellow"), end = '')
         GH_TOKEN = input()
         print(colored("Please enter the repository as it appears on in the Github URL (e.g. {User}/{Repository}:\t",
@@ -200,7 +200,7 @@ if __name__ == "__main__":
             'LOCAL_REPO': LOCAL_REPO
         }
 
-        with open('../config.ini', 'w+') as settings:
+        with open('config.ini', 'w+') as settings:
             config.write(settings)
 
     local_repo = Repo(config.get('LOCAL REPO', 'LOCAL_REPO'))
