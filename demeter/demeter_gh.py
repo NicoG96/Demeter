@@ -23,7 +23,7 @@ def demeter_cli():
     tickets = get_tickets()
 
     if len(tickets) is not 0:
-        pull_requests, connect_errors = get_pulls(tickets)
+        pull_requests, connect_errors = connect_pull_requests(get_pull_requests(), tickets)
     else:
         logging.error('No tickets were entered! Exiting...')
         exit(1)
@@ -91,11 +91,16 @@ def get_tickets():
     return tickets
 
 
-def get_pulls(tickets):
+def get_pull_requests():
+    logging.info('Fetching pull requests...')
+    return github_repo.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
+
+
+def connect_pull_requests(all_pulls, tickets):
     logging.info('Connecting ' + str(len(tickets)) +
                  ' issue' + ('s' if len(tickets) > 1 else '') +
                  ' to relevant pull requests...')
-    all_pulls = r.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
+
     connected_pulls = []
     errors = 0
 
@@ -125,17 +130,6 @@ def sort_pulls(pull_requests):
     return sorted(pull_requests, key=lambda x: x.merged_at, reverse=False)
 
 
-def build_release_branch(prev_release_sha, release_name):
-    logging.info('Building the new release branch...')
-
-    try:
-        r.create_git_ref(ref = 'refs/heads/' + str(release_name), sha = prev_release_sha)
-        logging.info('Successfully created new release branch!')
-    except github.GithubException:
-        logging.error('Couldn\'t create release branch! Exiting...')
-        exit(1)
-
-
 def get_prev_release_sha():
     print(colored('Please type the branch name to base this release off of:\t', 'yellow'))
     prev_release_sha = None
@@ -144,7 +138,7 @@ def get_prev_release_sha():
     while not done:
         prev_release_name = input()
         try:
-            prev_release_sha = r.get_branch(branch=str(prev_release_name)).commit.sha
+            prev_release_sha = github_repo.get_branch(branch=str(prev_release_name)).commit.sha
             logging.info('Previous release branch successfully indexed!')
             done = True
 
@@ -154,53 +148,63 @@ def get_prev_release_sha():
     return prev_release_sha
 
 
+def build_release_branch(prev_release_sha, release_name):
+    logging.info('Building the new release branch...')
+
+    try:
+        github_repo.create_git_ref(ref = 'refs/heads/' + str(release_name), sha = prev_release_sha)
+        logging.info('Successfully created new release branch!')
+    except github.GithubException:
+        logging.error('Couldn\'t create release branch! Exiting...')
+        exit(1)
+
+
 def cherrypick(pull_requests, release_name):
-    logging.info('Fetching repo updates...')
-    repo.git.fetch()
-    repo.git.pull()
+    local_repo.git.checkout('master')
+    logging.info('Fetching any repo updates...')
+    local_repo.git.pull()
 
     logging.info("Checking out branch: " + str(release_name) + '...')
-    repo.git.checkout(str(release_name))
+    local_repo.git.checkout(str(release_name))
 
     logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commit' +
                  ('s' if len(pull_requests) > 1 else '') + '...')
 
     for pr in pull_requests:
-        repo.git.cherry_pick('-m', '1', pr.merge_commit_sha)
+        local_repo.git.cherry_pick('-m', '1', pr.merge_commit_sha)
 
     logging.info('Pushing changes to origin...')
-    repo.git.push('origin', str(release_name))
-
-    return
+    local_repo.git.push('origin', str(release_name))
 
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
+    config.read('../config.ini')
 
-    if not os.path.isfile("config.ini"):
-        print(colored("Please enter your personal GitHub access token:\t", "yellow"))
+    if not os.path.isfile("../config.ini") or 'GITHUB CREDENTIALS' not in config.sections():
+        print(colored("Please enter your personal GitHub access token:\t", "yellow"), end = '')
         GH_TOKEN = input()
-        print(colored("Please enter the repository as it appears on Github(e.g. {User}/{Repository}:\t", "yellow"))
+        print(colored("Please enter the repository as it appears on in the Github URL (e.g. {User}/{Repository}:\t",
+                      "yellow"), end = '')
         GH_REPO = input()
-        print(colored("Please enter the directory path of the project on your machine {e.g. C:\{User}\Documents\{Repo}:"
-                      "\t", "yellow"))
-        REPO_PATH = input()
+        print(colored("Please enter the directory path of the project on your machine {e.g. /Users/{User}/Documents/"
+                      "{Repo}:\t", "yellow"), end = '')
+        LOCAL_REPO = input()
 
         config['GITHUB CREDENTIALS'] = {
             'GH_TOKEN': GH_TOKEN,
             'GH_REPO': GH_REPO,
         }
 
-        config['LOCAL REPOSITORY'] = {
-            'REPO_PATH': REPO_PATH
+        config['LOCAL REPO'] = {
+            'LOCAL_REPO': LOCAL_REPO
         }
 
-        with open('config.ini', 'w') as settings:
+        with open('../config.ini', 'w+') as settings:
             config.write(settings)
 
-    config.read('config.ini')
-    repo = Repo(config.get('LOCAL REPOSITORY', 'REPO_PATH'))
-    g = Github(config.get('GITHUB CREDENTIALS', 'GITHUB_TOKEN'))
-    r = g.get_repo(config.get('GITHUB CREDENTIALS', 'GITHUB_REPO'))
+    local_repo = Repo(config.get('LOCAL REPO', 'LOCAL_REPO'))
+    github_repo = (Github(config.get('GITHUB CREDENTIALS', 'GH_TOKEN'))
+                   .get_repo(config.get('GITHUB CREDENTIALS', 'GH_REPO')))
 
     demeter_cli()
