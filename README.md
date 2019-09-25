@@ -42,7 +42,7 @@ Demeter helps developers cherry-pick certain pull requests from issue tickets th
 <!-- REQUIREMENTS -->
 ## Requirements
 1. Python 3.7.2+
-2. GitHub access token
+2. GitHub/Bitbucket access token
 3. Structured pull request system that includes ticket number in title
 
 
