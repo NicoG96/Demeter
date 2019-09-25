@@ -25,6 +25,7 @@
 This application serves to streamline the deployment process for projects hosted on GitHub. 
 Demeter helps developers cherry-pick certain pull requests from issue tickets that are slated for release by automating the branch creation and then incorporating the commits from these pull requests into the branch.  In an ideal scenario, the pull requests that have already been merged into the development branch should all go into the next release, however, this is often not the case.  This is where Demeter comes into play -- it allows the developer to specify which resolved issue tickets they would like to include in the new release and effectively saves them the time spent time manually referencing each PR and cherry-picking chronologically.
 
+
 <!-- INSTALLATION -->
 ## Installation
 
@@ -35,21 +36,20 @@ Demeter helps developers cherry-pick certain pull requests from issue tickets th
 3.) In a terminal, navigate to the unzipped directory and type:
 `python3 setup.py install`
 
-4.) Once installed, simply run the command: `python3 demeter/demeter.py`
-
+4.) Once installed, simply run the command: `python3 demeter/demeter_gh.py` for GitHub or `python3 demeter/demeter_bb.py` for BitBucket
 
 
 <!-- REQUIREMENTS -->
 ## Requirements
 1. Python 3.7.2+
-2. GitHub/Bitbucket access token
+2. GitHub access token and/or BitBucket consumer keys
 3. Structured pull request system that includes ticket number in title
 
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Usage is fairly straightforward. If you are running Demeter for the first time, you will be prompted for GitHub credentials that will only need to be entered once to setup the configuration file. *Note*: You will need to create a personal access token for Demeter to use prior to running the application (GitHub profile -> Settings -> Developer Settings -> Personal Access Tokens).
+Usage is fairly straightforward. If you are running Demeter for the first time, you will be prompted for GitHub/BitBucket credentials that will only need to be entered once to setup the configuration file. *Note*: You will need to create a personal access token for Demeter to use prior to running the application (GitHub profile -> Settings -> Developer Settings -> Personal Access Tokens).
 
 <img src="https://i.imgur.com/MAvYcmO.png"></a>
 
@@ -81,12 +81,10 @@ Contributions are what make the open source community such an amazing place to b
 5. Open a Pull Request
 
 
-
 <!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-
 
 
 <!-- CONTACT -->
