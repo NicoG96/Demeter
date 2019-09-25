@@ -49,25 +49,24 @@ Demeter helps developers cherry-pick certain pull requests from issue tickets th
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Usage is fairly straightforward. Upon starting the program, you will be prompted to enter the tickets you'd like to include in the next release.  (***Disclaimer***: Pull requests **MUST** include the ticket number somewhere in its title, otherwise the application will be unable to parse any pull request associated with these tickets).
+Usage is fairly straightforward. If you are running Demeter for the first time, you will be prompted for GitHub credentials that will only need to be entered once to setup the configuration file. *Note*: You will need to create a personal access token for Demeter to use prior to running the application (GitHub profile -> Settings -> Developer Settings -> Personal Access Tokens).
 
-<img src="https://i.imgur.com/wtlWi8p.png"></a>
+<img src="https://i.imgur.com/MAvYcmO.png"></a>
 
-From there, Demeter will then search for the associated pull request for these tickets among the last 50 closed pull requests.  If there was no match for a certain ticket, Demeter will notify the user and prompt them as to whether or not they would like to continue with the release.
+Once configured, you will then be prompted to enter the tickets you'd like to include in the next release.  (***Disclaimer***: Pull requests **MUST** include the ticket number somewhere in its title, otherwise the application will be unable to parse any pull request associated with these tickets).
 
-<img src="https://i.imgur.com/66ic5vz.png"></a>
+<img src="https://i.imgur.com/JAFv4mU.png"></a>
 
-If all tickets were connected to 1+ pull requests or the user entered 'y' to the above, a report of the PRs is then displayed to the user so that they can QA its results.  If all looks well, the user can proceed to the final step.
+From there, Demeter will then search for the associated pull request for these tickets among the last 50 closed pull requests.  It will display the connected tickets in a chronological list and prompt for your approval.
 
-<img src="https://i.imgur.com/kwf2MDA.png"></a>
+<img src="https://i.imgur.com/XPOt7ZB.png"></a>
 
-Demeter will then prompt the user which branch should be the target for the pending release branch.  The user will enter a valid branch name and then the name of the release branch they are currently making.  Demeter will consequently create a new branch from the head of the specified base branch and begin cherry-picking the merge commits.
 
-<img src="https://i.imgur.com/HuoyKEH.png"></a>
+If the user approves of the report, Demeter will then prompt the user which branch should be the target for the pending release branch.  The user will enter a valid branch name and then the name of the release branch they are currently making.  Demeter will create a new branch from the head of the specified base branch and begin cherry-picking the merge commits.
+
+<img src="https://i.imgur.com/arr5bfP.png"></a>
 
 If all cherry-picks were successful, Demeter will output such in the log and then push the changes to the remote repository.  If everything completed without errors, you should then see your newly-created release branch on your repo!
-
-<img src="https://i.imgur.com/3yjKZQI.png"></a>
 
 
 <!-- CONTRIBUTING -->
