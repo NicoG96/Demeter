@@ -25,7 +25,8 @@ def demeter_cli():
     issues = get_issues()
 
     if len(issues) is not 0:
-        pull_requests, connect_errors = get_pulls(issues)
+        pull_requests, connect_errors = connect_pull_requests(get_pull_requests(), issues)
+
     else:
         logging.error('No issues were entered! Exiting...')
         exit(1)
@@ -96,11 +97,9 @@ def get_issues():
     return issues
 
 
-def get_pulls(issues):
+def get_pull_requests():
     all_pulls = []
-    logging.info('Connecting ' + str(len(issues)) +
-                 ' issue' + ('s' if len(issues) > 1 else '') +
-                 ' to relevant pull requests...')
+    logging.info('Fetching pull requests...')
 
     url = 'https://api.bitbucket.org/2.0/repositories/{}/pullrequests?fields=values.title,values.updated_on,' \
           'values.merge_commit.hash&state=MERGED'.format(config.get("BITBUCKET CREDENTIALS", "BB_REPO"))
@@ -115,6 +114,13 @@ def get_pulls(issues):
         logging.error("Couldn't access BitBucket API - credentials error")
         exit(1)
 
+    return all_pulls
+
+
+def connect_pull_requests(all_pulls, issues):
+    logging.info('Connecting ' + str(len(issues)) +
+                 ' issue' + ('s' if len(issues) > 1 else '') +
+                 ' to relevant pull requests...')
     connected_pulls = []
     errors = 0
 
@@ -144,27 +150,19 @@ def sort_pulls(pull_requests):
     return sorted(pull_requests, key = lambda x: x['updated_on'], reverse = False)
 
 
-def build_new_branch(prev_branch, new_branch):
-    logging.info('Fetching any repo updates...')
-    repo.git.checkout(prev_branch)
-    repo.git.pull()
-
-    logging.info('Building the new branch...')
-    repo.git.checkout('-b', new_branch)
-
-    logging.info('Successfully created new branch!')
-
-
 def get_remote_branch():
     print(colored('Please type the branch name to base this release off of:\t', 'yellow'))
     done = False
 
     while not done:
         branch_name = input()
+
         url = 'https://api.bitbucket.org/2.0/repositories/{}/refs/branches/{}' \
             .format(config.get('BITBUCKET CREDENTIALS', 'BB_REPO'), branch_name)
 
-        response = (requests.get(url = url)).json()
+        header = {'Authorization': 'Bearer {}'.format(config.get("BITBUCKET CREDENTIALS", "BB_ACCESS_TOKEN"))}
+
+        response = (requests.get(url=url, headers=header)).json()
 
         if 'error' in response:
             logging.error('Branch not found. Try again?')
@@ -173,6 +171,17 @@ def get_remote_branch():
             return branch_name
 
     return None
+
+
+def build_new_branch(prev_branch, new_branch):
+    repo.git.checkout(prev_branch)
+    logging.info('Fetching any repo updates...')
+    repo.git.pull()
+
+    logging.info('Building the new branch...')
+    repo.git.checkout('-b', new_branch)
+
+    logging.info('Successfully created new branch!')
 
 
 def cherrypick(pull_requests, new_branch):
@@ -184,8 +193,6 @@ def cherrypick(pull_requests, new_branch):
 
     logging.info('Pushing changes to origin...')
     repo.git.push('--set-upstream', 'origin', str(new_branch))
-
-    return
 
 
 if __name__ == "__main__":
@@ -235,6 +242,9 @@ if __name__ == "__main__":
             'BB_ACCESS_TOKEN': BB_ACCESS_TOKEN,
             'BB_REFRESH_TOKEN': BB_REFRESH_TOKEN,
             'BB_REPO': BB_REPO,
+        }
+
+        config['LOCAL REPO'] = {
             'LOCAL_REPO': LOCAL_REPO
         }
 
@@ -247,8 +257,6 @@ if __name__ == "__main__":
 
     # check if the access token has expired
     if datetime.now() - datetime.strptime(config.get('METADATA', 'Last_Updated'), '%Y-%m-%d %H:%M:%S.%f') >= timedelta(hours=2):
-        logging.info('Access token has expired. Updating now...')
-
         data = {
             'grant_type': 'refresh_token',
             'refresh_token': config.get('BITBUCKET CREDENTIALS', 'BB_REFRESH_TOKEN')
@@ -269,6 +277,6 @@ if __name__ == "__main__":
         with open('../config.ini', 'w+') as settings:
             config.write(settings)
 
-    repo = Repo(config.get('BITBUCKET CREDENTIALS', 'LOCAL_REPO'))
+    repo = Repo(config.get('LOCAL REPO', 'LOCAL_REPO'))
 
     demeter_cli()
