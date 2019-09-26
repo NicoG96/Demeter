@@ -54,7 +54,7 @@ def demeter_cli():
               str(pr['title']))
     print(colored('===================================================================================================='
                   '==========', 'yellow'))
-    print(colored('Look good? [y/n]', 'yellow'), end ='')
+    print(colored('Look good? [y/n]: ', 'yellow'), end ='')
 
     if input().lower() == 'n':
         logging.info('Exiting...')

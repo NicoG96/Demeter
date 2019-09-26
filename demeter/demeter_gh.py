@@ -50,7 +50,7 @@ def demeter_cli():
         print(str(pr.merged_at) + ' - ' + pr.title)
     print(colored('===================================================================================================='
                   '==========', 'yellow'))
-    print(colored('Look good? [y/n]', 'yellow'), end='')
+    print(colored('Look good? [y/n]: ', 'yellow'), end='')
 
     if input().lower() == 'n':
         logging.info('Exiting...')
