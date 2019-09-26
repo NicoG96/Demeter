@@ -66,7 +66,7 @@ From there, Demeter will then search for the associated pull request for these t
 
 If the user approves of the report, Demeter will then prompt the user which branch should be the target for the pending release branch.  The user will enter a valid branch name and then the name of the release branch they are currently making.  Demeter will create a new branch from the head of the specified base branch and begin cherry-picking the merge commits.
 
-<img src="https://i.imgur.com/arr5bfP.png"></a>
+<img src="https://i.imgur.com/3XLHBGc.png"></a>
 
 If all cherry-picks were successful, Demeter will output such in the log and then push the changes to the remote repository.  If everything completed without errors, you should then see your newly-created release branch on your repo!
 
