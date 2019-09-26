@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="Demeter",
-    version="2.0.0",
+    version="1.1.0",
     author="Nico Gonzalez",
     author_email="NicoG96@gmail.com",
     packages=["demeter"],
