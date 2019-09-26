@@ -184,10 +184,10 @@ if __name__ == "__main__":
     if not os.path.isfile("config.ini") or 'GITHUB CREDENTIALS' not in config.sections():
         print(colored("Please enter your personal GitHub access token:\t", "yellow"), end = '')
         GH_TOKEN = input()
-        print(colored("Please enter the repository as it appears on in the Github URL (e.g. {User}/{Repository}:\t",
+        print(colored("Please enter the repository as it appears on in the Github URL e.g. {User}/{Repository}:\t",
                       "yellow"), end = '')
         GH_REPO = input()
-        print(colored("Please enter the directory path of the project on your machine {e.g. /Users/{User}/Documents/"
+        print(colored("Please enter the directory path of the project on your machine e.g. /Users/{User}/Documents/"
                       "{Repo}:\t", "yellow"), end = '')
         LOCAL_REPO = input()
 
