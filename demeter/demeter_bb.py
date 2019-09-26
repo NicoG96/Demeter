@@ -66,7 +66,7 @@ def demeter_cli():
         logging.error("Couldn't fetch the specified branch!")
         exit(1)
 
-    print(colored('Now please type the name of the new branch:\t', 'yellow'))
+    print(colored('Now please type the name of the new branch:\t', 'yellow'), end='')
     new_branch = input()
     build_new_branch(prev_branch, new_branch)
     cherrypick(pull_requests, new_branch)
@@ -151,7 +151,7 @@ def sort_pulls(pull_requests):
 
 
 def get_remote_branch():
-    print(colored('Please type the branch name to base this release off of:\t', 'yellow'))
+    print(colored('Please type the branch name to base this release off of:\t', 'yellow'), end='')
     done = False
 
     while not done:

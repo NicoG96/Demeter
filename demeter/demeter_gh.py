@@ -58,7 +58,7 @@ def demeter_cli():
 
     prev_release_sha = get_prev_release_sha()
 
-    print(colored('Now please type the name of this release:\t', 'yellow'))
+    print(colored('Now please type the name of this release:\t', 'yellow'), end='')
     release_name = input()
 
     build_release_branch(prev_release_sha, release_name)
@@ -131,7 +131,7 @@ def sort_pulls(pull_requests):
 
 
 def get_prev_release_sha():
-    print(colored('Please type the branch name to base this release off of:\t', 'yellow'))
+    print(colored('Please type the branch name to base this release off of:\t', 'yellow'), end='')
     prev_release_sha = None
     done = False
 
