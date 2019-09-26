@@ -22,8 +22,10 @@
 <!-- ABOUT THE PROJECT -->
 ## About the Project
 
-This application serves to streamline the deployment process for projects hosted on GitHub. 
-Demeter helps developers cherry-pick certain pull requests from issue tickets that are slated for release by automating the branch creation and then incorporating the commits from these pull requests into the branch.  In an ideal scenario, the pull requests that have already been merged into the development branch should all go into the next release, however, this is often not the case.  This is where Demeter comes into play -- it allows the developer to specify which resolved issue tickets they would like to include in the new release and effectively saves them the time spent time manually referencing each PR and cherry-picking chronologically.
+This application serves to streamline the deployment process for projects hosted on GitHub and BitBucket. 
+Demeter helps developers cherry-pick certain pull requests from issue tickets that are slated for release by automating the branch creation and then incorporating the commits from these pull requests into the branch.  
+
+In an ideal scenario, the pull requests that have already been merged into the development branch should all go into the next release, however, this is often not the case.  This is where Demeter comes into play -- it allows the developer to specify which resolved issue tickets they would like to include in the new release and effectively saves them the time spent time manually referencing each PR and cherry-picking chronologically.
 
 
 <!-- INSTALLATION -->
@@ -49,7 +51,7 @@ Demeter helps developers cherry-pick certain pull requests from issue tickets th
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Usage is fairly straightforward. If you are running Demeter for the first time, you will be prompted for GitHub/BitBucket credentials that will only need to be entered once to setup the configuration file. *Note*: You will need to create a personal access token for Demeter to use prior to running the application (GitHub profile -> Settings -> Developer Settings -> Personal Access Tokens).
+Usage is fairly straightforward. If you are running Demeter for the first time, you will be prompted for GitHub/BitBucket credentials that will only need to be entered once to setup the configuration file. **Note**: You will need to create a personal access token for Demeter to use prior to running the application (GitHub profile -> Settings -> Developer Settings -> Personal Access Tokens).
 
 <img src="https://i.imgur.com/MAvYcmO.png"></a>
 
@@ -72,7 +74,7 @@ If all cherry-picks were successful, Demeter will output such in the log and the
 <!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are greatly appreciated.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
