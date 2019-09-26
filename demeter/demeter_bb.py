@@ -66,7 +66,7 @@ def demeter_cli():
         logging.error("Couldn't fetch the specified branch!")
         exit(1)
 
-    print(colored('Now please type the name of the new branch:\t', 'yellow'), end='')
+    print(colored('Now please type the name of the new branch: ', 'yellow'), end='')
     new_branch = input()
     build_new_branch(prev_branch, new_branch)
     cherrypick(pull_requests, new_branch)
@@ -74,7 +74,7 @@ def demeter_cli():
 
 
 def get_issues():
-    print("Enter issue IDs one-by-one to queue for release.\nType 'done' to conclude queuing:\t")
+    print("Enter issue IDs one-by-one to queue for release.\nType 'done' to conclude queuing: ")
     issues = []
     i = 1
 
@@ -151,7 +151,7 @@ def sort_pulls(pull_requests):
 
 
 def get_remote_branch():
-    print(colored('Please type the branch name to base this release off of:\t', 'yellow'), end='')
+    print(colored('Please type the branch name to base this release off of: ', 'yellow'), end='')
     done = False
 
     while not done:
@@ -201,22 +201,22 @@ if __name__ == "__main__":
 
     if not os.path.isfile("config.ini") or 'BITBUCKET CREDENTIALS' not in config.sections():
         # get user credentials
-        print(colored("Please enter your OAuth2 consumer key:\t", "yellow"), end = '')
+        print(colored("Please enter your OAuth2 consumer key: ", "yellow"), end = '')
         BB_KEY = input()
 
-        print(colored("Please enter your OAuth2 consumer secret:\t", "yellow"), end = '')
+        print(colored("Please enter your OAuth2 consumer secret: ", "yellow"), end = '')
         BB_SECRET = input()
 
-        print(colored("Please enter the name of the repo as it appears in the BitBucket URL (e.g. {user}/{repo}):\t",
+        print(colored("Please enter the name of the repo as it appears in the BitBucket URL (e.g. {user}/{repo}): ",
                       "yellow"), end = '')
         BB_REPO = input()
 
         print(colored("Please enter the directory path of the project on your machine (e.g. /Users/{User}/Documents"
-                      "/{Repo}):\t", "yellow"), end = '')
+                      "/{Repo}): ", "yellow"), end = '')
         LOCAL_REPO = input()
 
         # fetch authentication code
-        print(colored("Opening web browser... please copy the code from the URL and paste it here:\t", "yellow"),
+        print(colored("Opening web browser... please copy the code from the URL and paste it here: ", "yellow"),
               end = '')
 
         webbrowser.open("https://bitbucket.org/site/oauth2/authorize?client_id=" + BB_KEY + "&response_type=code")

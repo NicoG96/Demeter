@@ -58,7 +58,7 @@ def demeter_cli():
 
     prev_release_sha = get_prev_release_sha()
 
-    print(colored('Now please type the name of this release:\t', 'yellow'), end='')
+    print(colored('Now please type the name of this release: ', 'yellow'), end='')
     release_name = input()
 
     build_release_branch(prev_release_sha, release_name)
@@ -68,7 +68,7 @@ def demeter_cli():
 
 
 def get_tickets():
-    print("Enter tickets one-by-one to queue for release.\nType 'done' to conclude queuing:\t")
+    print("Enter tickets one-by-one to queue for release.\nType 'done' to conclude queuing:")
     tickets = []
     i = 1
 
@@ -131,7 +131,7 @@ def sort_pulls(pull_requests):
 
 
 def get_prev_release_sha():
-    print(colored('Please type the branch name to base this release off of:\t', 'yellow'), end='')
+    print(colored('Please type the branch name to base this release off of: ', 'yellow'), end='')
     prev_release_sha = None
     done = False
 
@@ -182,13 +182,13 @@ if __name__ == "__main__":
     config.read('config.ini')
 
     if not os.path.isfile("config.ini") or 'GITHUB CREDENTIALS' not in config.sections():
-        print(colored("Please enter your personal GitHub access token:\t", "yellow"), end = '')
+        print(colored("Please enter your personal GitHub access token: ", "yellow"), end = '')
         GH_TOKEN = input()
-        print(colored("Please enter the repository as it appears on in the Github URL e.g. {User}/{Repository}:\t",
+        print(colored("Please enter the repository as it appears on in the Github URL e.g. {User}/{Repository}: ",
                       "yellow"), end = '')
         GH_REPO = input()
         print(colored("Please enter the directory path of the project on your machine e.g. /Users/{User}/Documents/"
-                      "{Repo}:\t", "yellow"), end = '')
+                      "{Repo}: ", "yellow"), end = '')
         LOCAL_REPO = input()
 
         config['GITHUB CREDENTIALS'] = {
