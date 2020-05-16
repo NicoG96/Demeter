@@ -17,16 +17,14 @@
 * [License](#license)
 * [Contact](#contact)
 
-
-
 <!-- ABOUT THE PROJECT -->
 ## About the Project
 
-This application serves to streamline the deployment process for projects hosted on GitHub and BitBucket. 
+This application serves to streamline the deployment process for projects hosted on GitHub and BitBucket.
+
 Demeter helps developers cherry-pick certain pull requests from issue tickets that are slated for release by automating the branch creation and then incorporating the commits from these pull requests into the branch.  
 
 In an ideal scenario, the pull requests that have already been merged into the development branch should all go into the next release, however, this is often not the case.  This is where Demeter comes into play -- it allows the developer to specify which resolved issue tickets they would like to include in the new release and effectively saves them the time spent time manually referencing each PR and cherry-picking chronologically.
-
 
 <!-- INSTALLATION -->
 ## Installation
@@ -40,13 +38,12 @@ In an ideal scenario, the pull requests that have already been merged into the d
 
 4.) Once installed, simply run the command: `python3 demeter/demeter_gh.py` for GitHub or `python3 demeter/demeter_bb.py` for BitBucket
 
-
 <!-- REQUIREMENTS -->
 ## Requirements
-1. Python 3.7.2+
+
+1. Python 3+
 2. GitHub access token and/or BitBucket consumer keys
 3. Structured pull request system that includes ticket number in title
-
 
 <!-- USAGE EXAMPLES -->
 ## Usage
@@ -63,13 +60,11 @@ From there, Demeter will then search for the associated pull request for these t
 
 <img src="https://i.imgur.com/XPOt7ZB.png"></a>
 
-
 If the user approves of the report, Demeter will then prompt the user which branch should be the target for the pending release branch.  The user will enter a valid branch name and then the name of the release branch they are currently making.  Demeter will create a new branch from the head of the specified base branch and begin cherry-picking the merge commits.
 
 <img src="https://i.imgur.com/3XLHBGc.png"></a>
 
 If all cherry-picks were successful, Demeter will output such in the log and then push the changes to the remote repository.  If everything completed without errors, you should then see your newly-created release branch on your repo!
-
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -82,12 +77,10 @@ Contributions are what make the open source community such an amazing place to b
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
 <!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-
 
 <!-- CONTACT -->
 ## Contact
