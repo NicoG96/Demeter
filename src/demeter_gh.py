@@ -22,13 +22,13 @@ def demeter_cli():
 
     tickets = get_tickets()
 
-    if len(tickets) is not 0:
+    if len(tickets) != 0:
         pull_requests, connect_errors = connect_pull_requests(get_pull_requests(), tickets)
     else:
         logging.error('No tickets were entered! Exiting...')
         exit(1)
 
-    if len(pull_requests) is not 0:
+    if len(pull_requests) != 0:
         if connect_errors:
             print(colored('There was an error connecting ' + str(connect_errors) +
                           ' ticket' +
@@ -62,6 +62,7 @@ def demeter_cli():
     release_name = input()
 
     build_release_branch(prev_release_sha, release_name)
+    prepare_workspace(release_name)
     cherrypick(pull_requests, release_name)
 
     logging.info('Process completed successfully! Exiting Demeter...')
@@ -93,7 +94,12 @@ def get_tickets():
 
 def get_pull_requests():
     logging.info('Fetching pull requests...')
-    return github_repo.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
+    
+    try:
+        return github_repo.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
+    except Exception as ex:
+        logging.error("Error fetching pull requests!")
+        raise ex
 
 
 def connect_pull_requests(all_pulls, tickets):
@@ -122,7 +128,6 @@ def connect_pull_requests(all_pulls, tickets):
                  ' issue' + ('s' if len(tickets)-errors > 1 else '') +
                  ' to ' + str(len(connected_pulls)) +
                  ' pull request' + ('s' if len(connected_pulls) > 1 or len(connected_pulls) == 0 else ''))
-
     return connected_pulls, errors
 
 
@@ -154,27 +159,40 @@ def build_release_branch(prev_release_sha, release_name):
     try:
         github_repo.create_git_ref(ref = 'refs/heads/' + str(release_name), sha = prev_release_sha)
         logging.info('Successfully created new release branch!')
-    except github.GithubException:
-        logging.error('Couldn\'t create release branch! Exiting...')
-        exit(1)
+    except github.GithubException as ex:
+        logging.error('Couldn\'t create release branch!')
+        raise ex
 
+
+def prepare_workspace(release_name):
+    logging.info("Preparing workspace for cherry-picking...")
+    try:
+        logging.info('Stashing any uncommitted changes in repository...')
+        local_repo.git.stash()
+
+        logging.info('Fetching any repo updates...')
+        local_repo.git.pull()
+
+        logging.info("Checking out branch: " + str(release_name) + '...')
+        local_repo.git.checkout(str(release_name))
+    except Exception as ex:
+        logging.error("A problem occurred while preparing the workspace: ")
+        raise ex
+    
 
 def cherrypick(pull_requests, release_name):
-    local_repo.git.checkout('master')
-    logging.info('Fetching any repo updates...')
-    local_repo.git.pull()
+    try:
+        logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commit' +
+                    ('s' if len(pull_requests) > 1 else '') + '...')
 
-    logging.info("Checking out branch: " + str(release_name) + '...')
-    local_repo.git.checkout(str(release_name))
+        for pr in pull_requests:
+            local_repo.git.cherry_pick('-m', '1', pr.merge_commit_sha)
 
-    logging.info('Cherry-picking ' + str(len(pull_requests)) + ' commit' +
-                 ('s' if len(pull_requests) > 1 else '') + '...')
-
-    for pr in pull_requests:
-        local_repo.git.cherry_pick('-m', '1', pr.merge_commit_sha)
-
-    logging.info('Pushing changes to origin...')
-    local_repo.git.push('origin', str(release_name))
+        logging.info('Pushing changes to origin...')
+        local_repo.git.push('origin', str(release_name))
+    except Exception as ex:
+        logging.error("Error occurred while cherry-picking commits!")
+        raise ex
 
 
 if __name__ == "__main__":
