@@ -1,0 +1,4 @@
+termcolor
+pyfiglet
+GitPython
+pygithub
