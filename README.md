@@ -53,7 +53,7 @@ In an ideal scenario, the pull requests that have already been merged into the d
 
 Usage is fairly straightforward. If you are running Demeter for the first time, you will be prompted for GitHub/BitBucket credentials that will only need to be entered once to setup the configuration file. **Note**: You will need to create a personal access token for Demeter to use prior to running the application (GitHub profile -> Settings -> Developer Settings -> Personal Access Tokens).
 
-<img src="https://i.imgur.com/blPmgSK.png"></a>
+<img src="https://i.imgur.com/j6HQeLW.png"></a>
 
 Once configured, you will then be prompted to enter the tickets you'd like to include in the next release.  (***Disclaimer***: Pull requests **MUST** include the ticket number somewhere in its title, otherwise the application will be unable to parse any pull request associated with these tickets).
 
