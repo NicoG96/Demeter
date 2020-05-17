@@ -33,17 +33,20 @@ In an ideal scenario, the pull requests that have already been merged into the d
 
 2.) Unzip the archive
 
-3.) In a terminal, navigate to the unzipped directory and type:
-`python3 setup.py install`
+3.) Setup a python virtual environment
 
-4.) Once installed, simply run the command: `python3 demeter/demeter_gh.py` for GitHub or `python3 demeter/demeter_bb.py` for BitBucket
+4.) Activate the virtual environment
+
+5.) Install the project dependencies by running `pip install -r requirements.txt`
+
+6.) Once installed, invoke demeter by typing `python3 demeter.py -s [github/bitbucket]` where the `-s` (or `--service`) argument specifies which service you want to use
 
 <!-- REQUIREMENTS -->
 ## Requirements
 
 1. Python 3+
 2. GitHub access token and/or BitBucket consumer keys
-3. Structured pull request system that includes ticket number in title
+3. **Structured pull request system that includes ticket number in title**
 
 <!-- USAGE EXAMPLES -->
 ## Usage
