@@ -12,8 +12,8 @@ import re
 
 class GitHub:
     def __init__(self):
-        self.local_repo
-        self.github_repo
+        self.local_repo = None
+        self.github_repo = None
         self.fig = Figlet(font='slant')
         logging.getLogger().setLevel(logging.INFO)
     

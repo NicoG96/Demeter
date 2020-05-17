@@ -14,8 +14,8 @@ import re
 
 class BitBucket():
     def __init__(self):
-        self.config
-        self.repo
+        self.config = None
+        self.repo = None
         self.fig = Figlet(font = 'slant')
         logging.getLogger().setLevel(logging.INFO)
 
