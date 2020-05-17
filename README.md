@@ -39,7 +39,7 @@ In an ideal scenario, the pull requests that have already been merged into the d
 
 5.) Install the project dependencies by running `pip install -r requirements.txt`
 
-6.) Once installed, invoke Demeter by typing `python3 Demeter.py [service]` where `service` denotes either GitHub (`--github or -g`) or BitBucket (`--bitbucket or -b`)
+6.) Once installed, invoke Demeter by typing `python3 Demeter.py [service]` where `service` denotes either GitHub (`--github` or `-g`) or BitBucket (`--bitbucket` or `-b`)
 
 <!-- REQUIREMENTS -->
 ## Requirements
