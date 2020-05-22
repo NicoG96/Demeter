@@ -229,7 +229,10 @@ class GitHub:
             with open(config_path, 'a+') as settings:
                 config.write(settings)
 
-        self.local_repo = Repo(config.get('LOCAL REPO', 'GITHUB_REPO'))
-        self.github_repo = (Github(config.get('GITHUB CREDENTIALS', 'GH_TOKEN'))
-                    .get_repo(config.get('GITHUB CREDENTIALS', 'GH_REPO')))
-        self.cli()
+        try:
+            self.local_repo = Repo(config.get('LOCAL REPO', 'GITHUB_REPO'))
+            self.github_repo = (Github(config.get('GITHUB CREDENTIALS', 'GH_TOKEN'))
+                        .get_repo(config.get('GITHUB CREDENTIALS', 'GH_REPO')))
+            self.cli()
+        except Exception as ex:
+            logging.error("Error initializing values from the configuration file. Please verify the entries are correct in ~/.demeter")
