@@ -205,7 +205,7 @@ class BitBucket():
         self.config = configparser.ConfigParser()
         self.config.read(config_path)
 
-        if not os.path.isfile(config_path) or 'BITBUCKET CREDENTIALS' not in config.sections():
+        if not os.path.isfile(config_path) or 'BITBUCKET CREDENTIALS' not in self.config.sections():
             print(colored("Please enter your OAuth2 consumer key: ", "yellow"), end = '')
             BB_KEY = input()
 

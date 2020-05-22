@@ -51,7 +51,7 @@ In an ideal scenario, the pull requests that have already been merged into the d
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Usage is fairly straightforward. If you are running Demeter for the first time, you will be prompted for GitHub/BitBucket credentials that will only need to be entered once to setup the configuration file. **Note**: You will need to create a personal access token for Demeter to use prior to running the application (GitHub profile -> Settings -> Developer Settings -> Personal Access Tokens).
+Usage is fairly straightforward. If you are running Demeter for the first time, you will be prompted for GitHub/BitBucket credentials that will only need to be entered once to setup the configuration file. **Note**: You will need to create a personal access token for Demeter to use prior to running the application (GitHub profile -> Settings -> Developer Settings -> Personal Access Tokens) or (BitBucket profile -> All workspaces -> Click 'Manage' on desired repository -> OAuth consumers -> Add consumer).
 
 <img src="https://i.imgur.com/j6HQeLW.png"></a>
 
