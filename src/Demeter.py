@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--github", "-g", action="store_true")
     parser.add_argument("--bitbucket", "-b", action="store_true")
-    parser.add_argument("--version", "-v", action="version", version="2.0.3")
+    parser.add_argument("--version", "-v", action="version", version="2.1.0")
     args = parser.parse_args()
 
     if args.github == True:
