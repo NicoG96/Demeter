@@ -16,9 +16,9 @@ class GitHub:
     
 
     def cli(self):
-        print(colored("========================================================================", "cyan"))
+        print(colored("============================================", "cyan"))
         print(colored(Figlet(font="slant").renderText("Demeter"), "cyan") + "v2.1.0",)
-        print(colored("========================================================================", "cyan"))
+        print(colored("============================================", "cyan"))
 
         ticket_mismatches = []
         indexed_pull_requests = None
