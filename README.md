@@ -57,17 +57,24 @@ Usage is fairly straightforward. If you are running Demeter for the first time, 
 
 Once configured, you will then be prompted to enter the tickets you'd like to include in the next release.  (***Disclaimer***: Pull requests **MUST** include the ticket number somewhere in its title, otherwise the application will be unable to parse any pull request associated with these tickets).
 
-<img src="https://i.imgur.com/JAFv4mU.png"></a>
+<img src="https://i.imgur.com/KfJIx74.png"></a>
 
 From there, Demeter will then search for the associated pull request for these tickets among the last 50 closed pull requests.  It will display the connected tickets in a chronological list and prompt for your approval.
 
-<img src="https://i.imgur.com/XPOt7ZB.png"></a>
+<img src="https://i.imgur.com/sFveom2.png"></a>
 
-If the user approves of the report, Demeter will then prompt the user which branch should be the target for the pending release branch.  The user will enter a valid branch name and then the name of the release branch they are currently making.  Demeter will create a new branch from the head of the specified base branch and begin cherry-picking the merge commits.
+If the user approves of the report, Demeter will then prompt the user for the target branch to be checked out.  They will then be prompted for the name of the new branch that will be created from these commits.
 
-<img src="https://i.imgur.com/3XLHBGc.png"></a>
+<img src="https://i.imgur.com/NWrApZf.png"></a>
 
-If all cherry-picks were successful, Demeter will output such in the log and then push the changes to the remote repository.  If everything completed without errors, you should then see your newly-created release branch on your repo!
+
+The user is then prompted to continue going ahead with cherry-picks:
+
+<img src="https://i.imgur.com/FsElpmv.png"></a>
+
+If all cherry-picks were successful, Demeter will output such in the log. The user is then given the option to push these changes to GitHub:
+
+<img src="https://i.imgur.com/7Wt7jgX.png"></a>
 
 <!-- CONTRIBUTING -->
 ## Contributing
