@@ -5,7 +5,6 @@ from pathlib import Path
 from git import Repo
 import configparser
 import os.path
-import logging
 import github
 import re
 
@@ -14,76 +13,84 @@ class GitHub:
     def __init__(self):
         self.local_repo = None
         self.github_repo = None
-        self.fig = Figlet(font='slant')
-        logging.getLogger().setLevel(logging.INFO)
     
 
     def cli(self):
-        print(colored('============================================', 'cyan'))
-        print(colored(self.fig.renderText('Demeter'), 'cyan'), end = '')
-        print(colored('============================================', 'cyan'))
+        print(colored("========================================================================", "cyan"))
+        print(colored(Figlet(font="slant").renderText("Demeter"), "cyan") + "v2.0.3",)
+        print(colored("========================================================================", "cyan"))
 
-        connect_errors = None
-        pull_requests = None
+        ticket_mismatches = []
+        indexed_pull_requests = None
 
         tickets = self.get_tickets()
 
         if len(tickets) != 0:
-            pull_requests, connect_errors = self.connect_pull_requests(self.get_pull_requests(), tickets)
+            pull_requests = self.get_pull_requests()
+            indexed_pull_requests, ticket_mismatches = self.search_pull_requests(pull_requests, tickets)
         else:
-            logging.error('No tickets were entered! Exiting...')
+            print(colored("No tickets found! Exiting...", "red"))
             return
 
-        if len(pull_requests) != 0:
-            if connect_errors:
-                print(colored('There was an error connecting ' + str(connect_errors) +
-                            ' ticket' +
-                            ('s' if connect_errors > 1 else '') +
-                            '. Would you still like to continue with deployment? [y/n]', 'yellow'))
-
-                if input().lower() == 'n':
-                    logging.info('Exiting...')
-                    return
-            pull_requests = self.sort_pulls(pull_requests)
-        else:
-            logging.error('Couldn\'t retrieve any associated pull requests. Exiting...')
+        if len(ticket_mismatches) > 0:
+            print(colored("There was an error connecting " + str(len(ticket_mismatches)) +
+                        " ticket" +
+                        ("s" if len(ticket_mismatches) > 1 else "") + ":", "red"))
+            for ticket in ticket_mismatches:
+                print(colored(f"  - #{ticket}", "red"))
+            print(colored("Did the pull request include the ticket # in the title?", "red"))
+            print(colored("Exiting...", "red"))
             return
 
-        print(colored('The following PRs will be cherry-picked into the next release:', 'yellow'))
-        print(colored('===================================================================================================='
-                    '==========', 'yellow'))
-        for pr in pull_requests:
-            print(str(pr.merged_at) + ' - ' + pr.title)
-        print(colored('===================================================================================================='
-                    '==========', 'yellow'))
-        print(colored('Look good? [y/n]: ', 'yellow'), end='')
+        if len(indexed_pull_requests) == 0:
+            return
+        
+        indexed_pull_requests = self.sort_pulls(indexed_pull_requests)
+        print(colored("The following merge commits will be cherry-picked:", "green"))
+        print(colored("===================================================================================================="
+                    "==========", "green"))
+        for pr in indexed_pull_requests:
+            print(colored(str(pr.merged_at) + " - " + pr.title, "green"))
+        print(colored("===================================================================================================="
+                    "==========", "green"))
+        print(colored("Look good? [y/n]: ", "green"), end="")
 
-        if input().lower() == 'n':
-            logging.info('Exiting...')
-            exit(1)
+        if input().lower() == "n":
+            print("Exiting...")
+            return
 
         prev_release_sha = self.get_prev_release_sha()
 
-        print(colored('Now please type the name of this release: ', 'yellow'), end='')
-        release_name = input()
+        print(colored("Now please type the name of the new branch to create: ", "green"), end="")
+        branch_name = input()
 
-        self.build_release_branch(prev_release_sha, release_name)
-        self.prepare_workspace(release_name)
-        self.cherrypick(pull_requests, release_name)
+        self.create_git_branch(prev_release_sha, branch_name)
+        
+        print(colored("To cherry-pick the commits, please type \"y\": ", "green"), end="")
+        if input().lower() == "y":
+            self.prepare_workspace(branch_name)
+            self.cherrypick(indexed_pull_requests)
+        else:
+            print("Exiting Demeter...")
+            return
 
-        logging.info('Process completed successfully! Exiting Demeter.')
-
+        print(colored("To push the changes to GitHub, please type \"y\": ", "green"), end="")
+        if input().lower() == "y":
+            self.push_to_github(branch_name)
+            print("Process complete!")
+        print("Exiting Demeter...")
+        
 
     def get_tickets(self):
-        print("Enter tickets one-by-one to queue for release.\nType 'done' to conclude queuing:")
+        print("Enter tickets one-by-one below.\nType \"done\" to conclude queuing:")
         tickets = []
         i = 1
 
         while True:
-            ticket_number = input(str(i) + '.) ')
+            ticket_number = input(str(i) + ".) ")
             i += 1
 
-            if ticket_number == 'done':
+            if ticket_number == "done":
                 break
             else:
                 try:
@@ -92,49 +99,46 @@ class GitHub:
                     if parsed_ticket_num not in tickets:
                         tickets.append(parsed_ticket_num)
                     else:
-                        logging.warning('You\'ve already entered this ticket!')
+                        print(colored("You\"ve already entered this ticket!"), "orange")
                 except ValueError:
-                    logging.error('Invalid entry!\n')
+                    print(colored("Invalid entry!", "red"))
         return tickets
 
 
     def get_pull_requests(self):
-        logging.info('Fetching pull requests...')
+        print("Fetching pull requests from GitHub...")
         
         try:
-            return self.github_repo.get_pulls(state = 'closed', sort = 'created', direction = 'desc')[:50]
+            return self.github_repo.get_pulls(state = "closed", sort = "created", direction = "desc")[:50]
         except Exception as ex:
-            logging.error("Error fetching pull requests!")
+            print(colored("Error fetching pull requests!", "red"))
             raise ex
 
 
-    def connect_pull_requests(self, all_pulls, tickets):
-        logging.info('Connecting ' + str(len(tickets)) +
-                    ' issue' + ('s' if len(tickets) > 1 else '') +
-                    ' to relevant pull requests...')
-
-        connected_pulls = []
-        errors = 0
+    def search_pull_requests(self, pull_requests, tickets):
+        indexed_pull_requests = []
+        ticket_mismatches = []
 
         for ticket in tickets:
             match = False
 
-            for pr in all_pulls:
+            for pr in pull_requests:
                 if re.search("^.*" + str(ticket) + "\D.*$", pr.title):
-                    match = True
-                    connected_pulls.append(pr)
+                    if pr.merged_at:
+                        match = True
+                        indexed_pull_requests.append(pr)
+                    else:
+                        print(colored(f"Warning: detected a pull request that was not merged into master: \"{pr.title}\"", "yellow"))
 
             if match is False:
-                errors += 1
-                logging.error('Did not find a connected PR for ticket #' + str(ticket)
-                            + '.\nDid the PR include the ticket # in the title?')
+                ticket_mismatches.append(ticket)   
 
-        logging.info('Connected ' + str(len(tickets) - errors) +
-                    '/' + str(len(tickets)) +
-                    ' issue' + ('s' if len(tickets)-errors > 1 else '') +
-                    ' to ' + str(len(connected_pulls)) +
-                    ' pull request' + ('s' if len(connected_pulls) > 1 or len(connected_pulls) == 0 else ''))
-        return connected_pulls, errors
+        print("Connected " + str(len(tickets) - len(ticket_mismatches)) +
+                    "/" + str(len(tickets)) +
+                    " ticket(s)" +
+                    " to " + str(len(indexed_pull_requests)) +
+                    " pull request" + ("s" if len(indexed_pull_requests) > 1 or len(indexed_pull_requests) == 0 else ""))
+        return indexed_pull_requests, ticket_mismatches
 
 
     def sort_pulls(self, pull_requests):
@@ -142,7 +146,7 @@ class GitHub:
 
 
     def get_prev_release_sha(self):
-        print(colored('Please type the branch name to base this release off of: ', 'yellow'), end='')
+        print(colored("Please type the name of the target branch to checkout: ", "green"), end="")
         prev_release_sha = None
         done = False
 
@@ -150,55 +154,54 @@ class GitHub:
             prev_release_name = input()
             try:
                 prev_release_sha = self.github_repo.get_branch(branch=str(prev_release_name)).commit.sha
-                logging.info('Previous release branch successfully indexed!')
+                print("Branch successfully indexed!")
                 done = True
 
             except github.GithubException:
-                logging.error('Branch not found. Try again?')
-
+                print(colored("Branch not found. Try again?", "yellow"))
         return prev_release_sha
 
 
-    def build_release_branch(self, prev_release_sha, release_name):
-        logging.info('Building the new release branch...')
+    def create_git_branch(self, prev_release_sha, release_name):
+        print("Creating the branch...")
 
         try:
-            self.github_repo.create_git_ref(ref = 'refs/heads/' + str(release_name), sha = prev_release_sha)
-            logging.info('Successfully created new branch on the GitHub repository!')
+            self.github_repo.create_git_ref(ref = "refs/heads/" + str(release_name), sha = prev_release_sha)
+            print("Branch successfully created on GitHub repo!")
         except github.GithubException as ex:
-            logging.error('Couldn\'t create release branch!')
+            print(colored("Couldn't create branch!", "red"))
             raise ex
 
 
-    def prepare_workspace(self, release_name):
-        logging.info("Preparing workspace for cherry-picking...")
+    def prepare_workspace(self, branch_name):
+        print("Preparing workspace for cherry-picking...")
         try:
-            logging.info('Stashing any uncommitted changes in repository...')
             self.local_repo.git.stash()
-
-            logging.info('Checking out master branch...')
-            self.local_repo.git.checkout('master')
-
-            logging.info('Fetching any repo updates...')
+            self.local_repo.git.checkout("master")
             self.local_repo.git.pull()
-
-            logging.info("Checking out branch: " + str(release_name) + '...')
-            self.local_repo.git.checkout(str(release_name))
+            self.local_repo.git.checkout(str(branch_name))
         except Exception as ex:
-            logging.error("A problem occurred while preparing the workspace: ")
+            print(colored("A problem occurred while preparing the workspace: ", "red"))
             raise ex
         
 
-    def cherrypick(self, pull_requests, release_name):
+    def cherrypick(self, pull_requests):
         try:
             for pr in pull_requests:
-                logging.info('Cherry-picking commit: ' + str(pr.merge_commit_sha))
-                self.local_repo.git.cherry_pick('-m', '1', pr.merge_commit_sha)
-
-            logging.info('Pushing changes to GitHub...')
-            self.local_repo.git.push('origin', str(release_name))
+                print("Cherry-picking commit: " + str(pr.merge_commit_sha))
+                self.local_repo.git.cherry_pick("-m", "1", pr.merge_commit_sha)
         except Exception as ex:
-            logging.error("Error occurred while cherry-picking commits!")
+            print(colored("Error occurred while cherry-picking commits: ", "red"))
+            raise ex
+        print("Cherry-picking complete.")
+
+
+    def push_to_github(self, branch_name):
+        try:
+            print("Pushing changes to GitHub...")
+            self.local_repo.git.push("origin", str(branch_name))
+        except Exception as ex:
+            print(colored("Error occurred while pushing changes: ", "red"))
             raise ex
 
 
@@ -207,34 +210,34 @@ class GitHub:
         config = configparser.ConfigParser()
         config.read(config_path)
 
-        if not os.path.isfile(config_path) or 'GITHUB CREDENTIALS' not in config.sections():
-            print(colored("Please enter your personal GitHub access token: ", "yellow"), end = '')
+        if not os.path.isfile(config_path) or "GITHUB CREDENTIALS" not in config.sections():
+            print(colored("Please enter your personal GitHub access token: ", "green"), end = "")
             GH_TOKEN = input()
             print(colored("Please enter the repository as it appears on in the Github URL e.g. {User}/{Repository}: ",
-                        "yellow"), end = '')
+                        "green"), end = "")
             GH_REPO = input()
             print(colored("Please enter the directory path of the project on your machine e.g. /Users/{User}/Documents/"
-                        "{Repo}: ", "yellow"), end = '')
+                        "{Repo}: ", "green"), end = "")
             LOCAL_REPO = input()
 
-            config['GITHUB CREDENTIALS'] = {
-                'GH_TOKEN': GH_TOKEN,
-                'GH_REPO': GH_REPO,
+            config["GITHUB CREDENTIALS"] = {
+                "GH_TOKEN": GH_TOKEN,
+                "GH_REPO": GH_REPO,
             }
 
-            config['LOCAL REPO'] = {
-                'GITHUB_REPO': LOCAL_REPO
+            config["LOCAL REPO"] = {
+                "GITHUB_REPO": LOCAL_REPO
             }
 
-            with open(config_path, 'a+') as settings:
+            with open(config_path, "a+") as settings:
                 config.write(settings)
 
         try:
-            self.local_repo = Repo(config.get('LOCAL REPO', 'GITHUB_REPO'))
-            self.github_repo = (Github(config.get('GITHUB CREDENTIALS', 'GH_TOKEN'))
-                        .get_repo(config.get('GITHUB CREDENTIALS', 'GH_REPO')))
+            self.local_repo = Repo(config.get("LOCAL REPO", "GITHUB_REPO"))
+            self.github_repo = (Github(config.get("GITHUB CREDENTIALS", "GH_TOKEN"))
+                        .get_repo(config.get("GITHUB CREDENTIALS", "GH_REPO")))
         except Exception as ex:
-            logging.error("Error initializing values from the configuration file. Please verify the entries are correct in ~/.demeter")
+            print(colored("Error initializing values from the configuration file. Please verify the entries are correct in ~/.demeter", "red"))
             return
         
         self.cli()
