@@ -17,7 +17,7 @@ class GitHub:
 
     def cli(self):
         print(colored("========================================================================", "cyan"))
-        print(colored(Figlet(font="slant").renderText("Demeter"), "cyan") + "v2.0.3",)
+        print(colored(Figlet(font="slant").renderText("Demeter"), "cyan") + "v2.1.0",)
         print(colored("========================================================================", "cyan"))
 
         ticket_mismatches = []
