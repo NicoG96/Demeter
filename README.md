@@ -22,9 +22,9 @@
 
 This application serves to streamline the deployment process for projects hosted on GitHub and BitBucket.
 
-Demeter helps developers cherry-pick certain pull requests from issue tickets that are slated for release by automating the branch creation and then incorporating the commits from these pull requests into the branch.  
+Demeter helps developers cherry-pick certain pull requests from GitHub tickets that are slated for release by automating the branch creation and then incorporating the commits from these pull requests into the branch.  
 
-In an ideal scenario, the pull requests that have already been merged into the development branch should all go into the next release, however, this is often not the case.  This is where Demeter comes into play -- it allows the developer to specify which resolved issue tickets they would like to include in the new release and effectively saves them the time spent time manually referencing each PR and cherry-picking chronologically.
+In an ideal scenario, the pull requests that have already been merged into the development branch should all go into the next release, however, this is often not the case.  Demeter allows the developer to specify which resolved tickets they would like to include in the new release. It saves them the time spent time manually referencing each pull request and cherry-picking the commits chronologically.
 
 <!-- INSTALLATION -->
 ## Installation
@@ -61,7 +61,7 @@ Once configured, you will then be prompted to enter the tickets you'd like to in
 
 From there, Demeter will then search for the associated pull request for these tickets among the last 50 closed pull requests.  It will display the connected tickets in a chronological list and prompt for your approval.
 
-<img src="https://i.imgur.com/sFveom2.png"></a>
+<img src="https://i.imgur.com/oEId6vW.png"></a>
 
 If the user approves of the report, Demeter will then prompt the user for the target branch to be checked out.  They will then be prompted for the name of the new branch that will be created from these commits.
 
@@ -95,4 +95,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Nico Gonzalez - NicoG96@gmail.com
+Nico Gonzalez - nico.r.gonzalez@protonmail.com
